@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>方案管理后台</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>银行推荐方案管理</h1>
+            <a href="index.html" class="admin-link">返回计算器</a>
+        </header>
+
+        <div class="card">
+            <h2>方案配置说明</h2>
+            <p style="color: #666; line-height: 1.8;">
+                在这里配置银行推荐方案，客户在计算器中可以直接选择查看。建议配置9个方案：<br>
+                • 仅存款：流动性优先、收益优先、平衡组合<br>
+                • 仅理财：流动性优先、收益优先、平衡组合<br>
+                • 存款+理财：流动性优先、收益优先、平衡组合
+            </p>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button class="btn-secondary" onclick="expandAll()">展开所有方案</button>
+                <button class="btn-secondary" onclick="collapseAll()">折叠所有方案</button>
+            </div>
+        </div>
+
+        <div id="schemesContainer"></div>
+
+        <div class="button-group sticky-buttons">
+            <button class="btn-primary" onclick="addScheme()">+ 添加新方案</button>
+            <button class="btn-primary" onclick="saveSchemes()">保存所有方案</button>
+            <button class="btn-secondary" onclick="resetSchemes()">恢复默认方案</button>
+        </div>
+
+        <div id="saveMessage" class="save-message" style="display: none;">
+            ✓ 方案已保存
+        </div>
+    </div>
+
+    <script src="schemes-admin.js"></script>
+</body>
+</html>

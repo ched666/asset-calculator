@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>产品配置后台</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>产品配置后台</h1>
+            <a href="index.html" class="admin-link">返回计算器</a>
+        </header>
+
+        <div class="card">
+            <h2>存款产品配置</h2>
+            <div id="depositProducts"></div>
+            <button class="btn-secondary" onclick="addDeposit()">+ 添加存款产品</button>
+        </div>
+
+        <div class="card">
+            <h2>理财产品配置</h2>
+            <div id="wealthProducts"></div>
+            <button class="btn-secondary" onclick="addWealth()">+ 添加理财产品</button>
+        </div>
+
+        <div class="button-group">
+            <button class="btn-primary" onclick="saveConfig()">保存配置</button>
+            <button class="btn-secondary" onclick="resetConfig()">恢复默认</button>
+        </div>
+
+        <div id="saveMessage" class="save-message" style="display: none;">
+            ✓ 配置已保存
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+﻿.DS_Store
+Thumbs.db
+*.log
+node_modules/
+.vscode/
+deploy.ps1
+deploy-fix.ps1
+git-setup.ps1

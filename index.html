@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>资产配置计算器</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>资产配置计算器</h1>
+            <a href="admin.html" class="admin-link">后台配置</a>
+        </header>
+
+        <!-- 模式选择标签 -->
+        <div class="card">
+            <div class="tab-container">
+                <button class="tab-button active" onclick="switchMode('bank')">银行推荐</button>
+                <button class="tab-button" onclick="switchMode('custom')">自定义配置</button>
+                <!-- <button class="tab-button" onclick="switchMode('auto')">智能计算</button> -->
+            </div>
+        </div>
+
+        <!-- 银行推荐模式 -->
+        <div id="bankMode" class="card">
+            <h2>银行推荐方案</h2>
+            <p style="color: #666; margin-bottom: 20px;">以下是我们精心为您准备的配置方案，请选择适合您的方案查看详情</p>
+            
+            <div class="form-group">
+                <label for="bankAmount">资金金额（万元）</label>
+                <input type="number" id="bankAmount" value="1000" min="0" step="1">
+            </div>
+
+            <div class="preset-schemes-container" id="presetSchemes">
+                <!-- 预设方案将动态加载 -->
+            </div>
+
+            <div class="admin-hint">
+                <p>💡 产品经理可在<a href="schemes-admin.html" target="_blank">方案管理后台</a>配置推荐方案</p>
+            </div>
+        </div>
+
+        <!-- 智能推荐模式 -->
+        <div id="autoMode" class="card" style="display: none;">
+            <h2>基本信息</h2>
+            <div class="form-group">
+                <label for="amount">资金金额（万元）</label>
+                <input type="number" id="amount" value="1000" min="0" step="1">
+            </div>
+            
+            <div class="form-group">
+                <label for="targetRate">目标综合收益率（%）</label>
+                <input type="number" id="targetRate" value="1.0" min="0" max="10" step="0.1">
+                <small style="color: #666; font-size: 14px; margin-top: 5px; display: block;">点击上下箭头按0.1%调整，也可直接输入任意精度</small>
+            </div>
+
+            <div class="form-group">
+                <label>选择配置方式</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="allocationType" value="deposit" checked onchange="toggleLiquidityField()">
+                        仅存款
+                    </label>
+                    <label>
+                        <input type="radio" name="allocationType" value="wealth" onchange="toggleLiquidityField()">
+                        仅理财
+                    </label>
+                    <label>
+                        <input type="radio" name="allocationType" value="mixed" onchange="toggleLiquidityField()">
+                        存款+理财
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group" id="liquidityField">
+                <label for="liquidityRatio">保底流动性（活期存款比例 %）</label>
+                <input type="number" id="liquidityRatio" value="10" min="0" max="100" step="1">
+                <small style="color: #666; font-size: 14px; margin-top: 5px; display: block;">建议保持10-30%的活期存款以应对日常资金需求</small>
+            </div>
+
+            <div class="form-group">
+                <label>配置倾向</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="preference" value="yield" checked>
+                        客户综合收益优先
+                    </label>
+                    <label>
+                        <input type="radio" name="preference" value="liquidity">
+                        流动性优先
+                    </label>
+                    <label>
+                        <input type="radio" name="preference" value="balance">
+                        平衡组合
+                    </label>
+                </div>
+                <small style="color: #666; font-size: 14px; margin-top: 8px; display: block;">
+                    • 收益优先：追求更高客户收益<br>
+                    • 流动性优先：更多活期和短期产品<br>
+                    • 平衡组合：综合考虑收益、流动性和银行收益
+                </small>
+            </div>
+
+            <button class="btn-primary" onclick="calculate()">开始计算</button>
+        </div>
+
+        <!-- 自定义配置模式 -->
+        <div id="customMode" class="card" style="display: none;">
+            <h2>自定义配置</h2>
+            <div class="form-group">
+                <label for="customAmount">资金金额（万元）</label>
+                <input type="number" id="customAmount" value="1000" min="0" step="1">
+            </div>
+
+            <div class="form-group">
+                <label>选择产品类型</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="customType" value="deposit" checked onchange="renderCustomProducts()">
+                        仅存款
+                    </label>
+                    <label>
+                        <input type="radio" name="customType" value="wealth" onchange="renderCustomProducts()">
+                        仅理财
+                    </label>
+                    <label>
+                        <input type="radio" name="customType" value="mixed" onchange="renderCustomProducts()">
+                        存款+理财
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="autoInfer" onchange="toggleAutoInfer()">
+                    <span>自动推演（根据目标收益自动计算剩余产品比例）</span>
+                </label>
+            </div>
+
+            <div id="targetRateField" class="form-group" style="display: none;">
+                <label for="customTargetRate">目标综合收益率（%）</label>
+                <input type="number" id="customTargetRate" value="1.5" min="0" max="10" step="0.1" oninput="updateTotalRatio()">
+                <small style="color: #666; font-size: 14px; margin-top: 5px; display: block;">点击上下箭头按0.1%调整，输入产品比例后，系统会实时显示推演建议</small>
+            </div>
+
+            <div id="inferenceStatus"></div>
+
+            <div id="customProductsList"></div>
+
+            <div class="allocation-summary">
+                <div class="summary-item">
+                    <span>总比例：</span>
+                    <span id="totalRatio" class="total-ratio">0.00%</span>
+                </div>
+                <div class="summary-item">
+                    <span>综合收益率：</span>
+                    <span id="currentRate" class="current-rate">0.00%</span>
+                </div>
+            </div>
+
+            <div id="inferenceStatus"></div>
+
+            <button class="btn-primary" onclick="calculateCustom()">生成测算结果</button>
+        </div>
+
+        <div id="resultSection" class="result-section" style="display: none;">
+            <!-- 结果会动态插入这里 -->
+        </div>
+
+        <div id="results"></div>
+
+        <div id="errorSection" class="card error-section" style="display: none;">
+            <h2>⚠️ 无法满足需求</h2>
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+
+    <script src="calculator.js"></script>
+</body>
+</html>

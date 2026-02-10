@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二维码生成器 - 资产配置计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            color: #555;
+            margin-bottom: 10px;
+            font-weight: 500;
+            text-align: left;
+        }
+        
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .qrcode-container {
+            margin: 30px 0;
+            padding: 30px;
+            background: #f8f9ff;
+            border-radius: 15px;
+            display: none;
+        }
+        
+        .qrcode-container.show {
+            display: block;
+        }
+        
+        #qrcode {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tip {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 10px;
+            color: #2e7d32;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .url-display {
+            margin-top: 15px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            word-break: break-all;
+            font-size: 14px;
+            color: #667eea;
+            font-weight: 500;
+        }
+        
+        .examples {
+            margin-top: 20px;
+            text-align: left;
+            padding: 20px;
+            background: #fff3e0;
+            border-radius: 10px;
+        }
+        
+        .examples h3 {
+            color: #f57c00;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .examples p {
+            color: #666;
+            font-size: 13px;
+            margin: 8px 0;
+            padding-left: 10px;
+        }
+        
+        .examples code {
+            background: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: #667eea;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 二维码生成器</h1>
+        <p class="subtitle">生成二维码，方便手机扫描访问</p>
+        
+        <div class="input-group">
+            <label for="urlInput">输入您的网址：</label>
+            <input type="text" id="urlInput" placeholder="例如：https://yourusername.github.io/asset-calculator/">
+        </div>
+        
+        <button class="btn" onclick="generateQRCode()">生成二维码</button>
+        
+        <div id="qrcodeContainer" class="qrcode-container">
+            <div id="qrcode"></div>
+            <div class="url-display" id="urlDisplay"></div>
+            <div class="tip">
+                💡 使用手机相机或微信扫描二维码即可访问<br>
+                建议将此页面添加到手机主屏幕，方便日常使用
+            </div>
+        </div>
+        
+        <div class="examples">
+            <h3>📝 网址示例：</h3>
+            <p>• GitHub Pages: <code>https://用户名.github.io/仓库名/</code></p>
+            <p>• Vercel: <code>https://项目名.vercel.app</code></p>
+            <p>• 自定义域名: <code>https://www.yourdomain.com</code></p>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script>
+        let qrcodeObj = null;
+        
+        function generateQRCode() {
+            const url = document.getElementById('urlInput').value.trim();
+            
+            if (!url) {
+                alert('请输入网址！');
+                return;
+            }
+            
+            // 验证URL格式
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                alert('请输入完整的网址，以 http:// 或 https:// 开头');
+                return;
+            }
+            
+            // 清除旧的二维码
+            const qrcodeElement = document.getElementById('qrcode');
+            qrcodeElement.innerHTML = '';
+            
+            // 生成新的二维码
+            qrcodeObj = new QRCode(qrcodeElement, {
+                text: url,
+                width: 256,
+                height: 256,
+                colorDark: '#667eea',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            
+            // 显示容器和网址
+            document.getElementById('qrcodeContainer').classList.add('show');
+            document.getElementById('urlDisplay').textContent = url;
+            
+            // 滚动到二维码位置
+            document.getElementById('qrcodeContainer').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+        }
+        
+        // 回车键生成
+        document.getElementById('urlInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateQRCode();
+            }
+        });
+        
+        // 页面加载时检查URL参数
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const url = urlParams.get('url');
+            if (url) {
+                document.getElementById('urlInput').value = url;
+                generateQRCode();
+            }
+        });
+    </script>
+</body>
+</html>
