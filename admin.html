@@ -5,13 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>产品配置后台</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        // 管理员权限检查
+        const userRole = sessionStorage.getItem('userRole');
+        if (userRole !== 'admin') {
+            alert('需要管理员权限才能访问此页面');
+            window.location.href = 'login.html';
+        }
+    </script>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>产品配置后台</h1>
-            <a href="index.html" class="admin-link">返回计算器</a>
+            <div>
+                <a href="schemes-admin.html" class="admin-link" style="margin-right: 10px;">方案管理</a>
+                <a href="index.html" class="admin-link" style="margin-right: 10px;">返回计算器</a>
+                <button class="btn-secondary" onclick="logout()" style="font-size: 12px; padding: 5px 15px;">退出登录</button>
+            </div>
         </header>
+        <script>
+            function logout() {
+                sessionStorage.clear();
+                localStorage.removeItem('hasLoggedIn');
+                window.location.href = 'login.html';
+            }
+        </script>
 
         <div class="card">
             <h2>存款产品配置</h2>

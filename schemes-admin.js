@@ -698,3 +698,125 @@ function importConfig(event) {
     };
     reader.readAsText(file);
 }
+
+// 保存GitHub配置
+function saveGithubConfig() {
+    const githubUser = document.getElementById('githubUser').value.trim();
+    const githubRepo = document.getElementById('githubRepo').value.trim();
+    const githubToken = document.getElementById('githubToken').value.trim();
+    
+    if (!githubUser || !githubRepo || !githubToken) {
+        alert('请填写完整的GitHub配置信息');
+        return;
+    }
+    
+    const config = {
+        user: githubUser,
+        repo: githubRepo,
+        token: githubToken
+    };
+    
+    localStorage.setItem('githubConfig', JSON.stringify(config));
+    alert('GitHub配置已保存到本地浏览器');
+}
+
+// 发布配置到云端
+async function publishToCloud() {
+    const statusDiv = document.getElementById('publishStatus');
+    statusDiv.style.color = '#667eea';
+    statusDiv.textContent = '正在发布...';
+    
+    try {
+        // 获取GitHub配置
+        const githubConfigStr = localStorage.getItem('githubConfig');
+        if (!githubConfigStr) {
+            throw new Error('请先配置并保存GitHub信息');
+        }
+        
+        const githubConfig = JSON.parse(githubConfigStr);
+        
+        // 准备配置数据
+        const config = {
+            bankSchemes: currentSchemes,
+            productConfig: JSON.parse(localStorage.getItem('productConfig') || '{}')
+        };
+        
+        const content = JSON.stringify(config, null, 2);
+        const base64Content = btoa(unescape(encodeURIComponent(content)));
+        
+        // 先获取文件的SHA（如果文件已存在）
+        const getUrl = `https://api.github.com/repos/${githubConfig.user}/${githubConfig.repo}/contents/default-config.json`;
+        let sha = null;
+        
+        try {
+            const getResponse = await fetch(getUrl, {
+                headers: {
+                    'Authorization': `token ${githubConfig.token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            if (getResponse.ok) {
+                const fileData = await getResponse.json();
+                sha = fileData.sha;
+            }
+        } catch (e) {
+            // 文件不存在，创建新文件
+        }
+        
+        // 更新或创建文件
+        const putUrl = `https://api.github.com/repos/${githubConfig.user}/${githubConfig.repo}/contents/default-config.json`;
+        const body = {
+            message: '更新默认配置 - 管理员发布',
+            content: base64Content,
+            branch: 'main'
+        };
+        
+        if (sha) {
+            body.sha = sha;
+        }
+        
+        const response = await fetch(putUrl, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${githubConfig.token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || '发布失败');
+        }
+        
+        statusDiv.style.color = '#28a745';
+        statusDiv.innerHTML = '✅ 发布成功！配置已更新到云端<br><small>预计1-2分钟后生效</small>';
+        
+        setTimeout(() => {
+            statusDiv.textContent = '';
+        }, 5000);
+        
+    } catch (error) {
+        statusDiv.style.color = '#e74c3c';
+        statusDiv.textContent = '❌ 发布失败：' + error.message;
+        console.error('发布错误：', error);
+    }
+}
+
+// 页面加载时恢复GitHub配置
+document.addEventListener('DOMContentLoaded', function() {
+    const githubConfigStr = localStorage.getItem('githubConfig');
+    if (githubConfigStr) {
+        try {
+            const config = JSON.parse(githubConfigStr);
+            document.getElementById('githubUser').value = config.user || '';
+            document.getElementById('githubRepo').value = config.repo || '';
+            document.getElementById('githubToken').value = config.token || '';
+        } catch (e) {
+            console.error('加载GitHub配置失败', e);
+        }
+    }
+});
+

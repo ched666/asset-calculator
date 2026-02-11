@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>资产配置计算器 - 登录</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .user-type {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .user-type button {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .user-type button:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+        
+        .user-type button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .admin-login {
+            display: none;
+            margin-bottom: 20px;
+        }
+        
+        .admin-login.show {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        label {
+            display: block;
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 20px;
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-login:active {
+            transform: translateY(0);
+        }
+        
+        .error-msg {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            text-align: center;
+        }
+        
+        .error-msg.show {
+            display: block;
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        
+        .features {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .features h3 {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .features ul {
+            list-style: none;
+            font-size: 13px;
+            color: #888;
+        }
+        
+        .features li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>🏦 资产配置计算器</h1>
+        <p class="subtitle">帮助您优化银行资产配置</p>
+        
+        <div class="user-type">
+            <button id="btnUser" class="active">普通用户</button>
+            <button id="btnAdmin">管理员</button>
+        </div>
+        
+        <div id="adminLogin" class="admin-login">
+            <label for="password">管理员密码</label>
+            <input type="password" id="password" placeholder="请输入管理密码">
+        </div>
+        
+        <button class="btn-login" id="btnEnter">立即进入</button>
+        
+        <div class="error-msg" id="errorMsg">密码错误，请重试</div>
+        
+        <div class="features" id="userFeatures">
+            <h3>功能说明：</h3>
+            <ul>
+                <li>查看推荐配置方案</li>
+                <li>自定义资产配置</li>
+                <li>实时收益计算</li>
+                <li>智能推演分析</li>
+            </ul>
+        </div>
+        
+        <div class="features" id="adminFeatures" style="display:none;">
+            <h3>管理员权限：</h3>
+            <ul>
+                <li>修改产品利率和FTP</li>
+                <li>配置银行推荐方案</li>
+                <li>一键发布到云端</li>
+                <li>导入导出配置</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // 管理员密码配置（可修改）
+        const ADMIN_PASSWORD = 'admin123';
+        
+        const btnUser = document.getElementById('btnUser');
+        const btnAdmin = document.getElementById('btnAdmin');
+        const adminLogin = document.getElementById('adminLogin');
+        const btnEnter = document.getElementById('btnEnter');
+        const passwordInput = document.getElementById('password');
+        const errorMsg = document.getElementById('errorMsg');
+        const userFeatures = document.getElementById('userFeatures');
+        const adminFeatures = document.getElementById('adminFeatures');
+        
+        let isAdminMode = false;
+        
+        // 切换用户类型
+        btnUser.addEventListener('click', function() {
+            isAdminMode = false;
+            btnUser.classList.add('active');
+            btnAdmin.classList.remove('active');
+            adminLogin.classList.remove('show');
+            errorMsg.classList.remove('show');
+            btnEnter.textContent = '立即进入';
+            userFeatures.style.display = 'block';
+            adminFeatures.style.display = 'none';
+        });
+        
+        btnAdmin.addEventListener('click', function() {
+            isAdminMode = true;
+            btnAdmin.classList.add('active');
+            btnUser.classList.remove('active');
+            adminLogin.classList.add('show');
+            errorMsg.classList.remove('show');
+            btnEnter.textContent = '管理员登录';
+            userFeatures.style.display = 'none';
+            adminFeatures.style.display = 'block';
+            setTimeout(() => passwordInput.focus(), 100);
+        });
+        
+        // 回车键登录
+        passwordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                btnEnter.click();
+            }
+        });
+        
+        // 登录按钮
+        btnEnter.addEventListener('click', function() {
+            if (isAdminMode) {
+                // 管理员登录验证
+                const password = passwordInput.value;
+                if (password === ADMIN_PASSWORD) {
+                    // 设置管理员标记
+                    sessionStorage.setItem('userRole', 'admin');
+                    // 跳转到管理页面
+                    window.location.href = 'schemes-admin.html';
+                } else {
+                    // 密码错误
+                    errorMsg.classList.add('show');
+                    passwordInput.value = '';
+                    passwordInput.focus();
+                    setTimeout(() => {
+                        errorMsg.classList.remove('show');
+                    }, 3000);
+                }
+            } else {
+                // 普通用户直接进入
+                sessionStorage.setItem('userRole', 'user');
+                window.location.href = 'index.html';
+            }
+        });
+        
+        // 检查是否已登录
+        const currentRole = sessionStorage.getItem('userRole');
+        if (currentRole === 'admin') {
+            window.location.href = 'schemes-admin.html';
+        } else if (currentRole === 'user') {
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

@@ -5,13 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>方案管理后台</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        // 管理员权限检查
+        const userRole = sessionStorage.getItem('userRole');
+        if (userRole !== 'admin') {
+            alert('需要管理员权限才能访问此页面');
+            window.location.href = 'login.html';
+        }
+    </script>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>银行推荐方案管理</h1>
-            <a href="index.html" class="admin-link">返回计算器</a>
+            <div>
+                <a href="admin.html" class="admin-link" style="margin-right: 10px;">后台配置</a>
+                <a href="index.html" class="admin-link" style="margin-right: 10px;">返回计算器</a>
+                <button class="btn-secondary" onclick="logout()" style="font-size: 12px; padding: 5px 15px;">退出登录</button>
+            </div>
         </header>
+        <script>
+            function logout() {
+                sessionStorage.clear();
+                localStorage.removeItem('hasLoggedIn');
+                window.location.href = 'login.html';
+            }
+        </script>
 
         <div class="card">
             <h2>方案配置说明</h2>
@@ -28,6 +47,53 @@
         </div>
 
         <div id="schemesContainer"></div>
+
+        <div class="card">
+            <h2>☁️ 云端配置发布</h2>
+            <p style="color: #666; margin-bottom: 15px;">
+                配置GitHub Token后，可一键发布配置到云端，所有新用户将自动加载最新配置
+            </p>
+            
+            <div class="form-group">
+                <label>GitHub用户名</label>
+                <input type="text" id="githubUser" placeholder="例如：ched666" value="ched666">
+            </div>
+            
+            <div class="form-group">
+                <label>GitHub仓库名</label>
+                <input type="text" id="githubRepo" placeholder="例如：asset-calculator" value="asset-calculator">
+            </div>
+            
+            <div class="form-group">
+                <label>
+                    GitHub Token 
+                    <span style="color: #999; font-size: 12px;">
+                        (仅保存在本地浏览器，
+                        <a href="https://github.com/settings/tokens" target="_blank" style="color: #667eea;">如何获取?</a>
+                        )
+                    </span>
+                </label>
+                <input type="password" id="githubToken" placeholder="请输入GitHub Personal Access Token">
+                <button class="btn-secondary" onclick="saveGithubConfig()" style="margin-top: 10px;">💾 保存配置</button>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #f0f7ff; border-radius: 8px; border-left: 4px solid #667eea;">
+                <p style="margin: 0; color: #555; font-size: 14px;">
+                    <strong>使用步骤：</strong><br>
+                    1️⃣ 在GitHub创建Token（需要repo权限）<br>
+                    2️⃣ 填写上方配置并保存<br>
+                    3️⃣ 修改方案后点击下方"发布到云端"<br>
+                    4️⃣ 等待1-2分钟，新用户即可看到最新配置
+                </p>
+            </div>
+            
+            <div style="margin-top: 15px; text-align: center;">
+                <button class="btn-primary" onclick="publishToCloud()" style="font-size: 16px; padding: 12px 40px;">
+                    🚀 发布到云端
+                </button>
+                <div id="publishStatus" style="margin-top: 10px; font-size: 14px;"></div>
+            </div>
+        </div>
 
         <div class="button-group sticky-buttons">
             <button class="btn-primary" onclick="addScheme()">+ 添加新方案</button>
