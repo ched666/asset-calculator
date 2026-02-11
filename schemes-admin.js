@@ -699,41 +699,72 @@ function importConfig(event) {
     reader.readAsText(file);
 }
 
-// 保存GitHub配置
-function saveGithubConfig() {
-    const githubUser = document.getElementById('githubUser').value.trim();
-    const githubRepo = document.getElementById('githubRepo').value.trim();
-    const githubToken = document.getElementById('githubToken').value.trim();
-    
-    if (!githubUser || !githubRepo || !githubToken) {
-        alert('请填写完整的GitHub配置信息');
-        return;
+// GitHub配置（内置）
+const GITHUB_CONFIG = {
+    user: 'ched666',
+    repo: 'asset-calculator',
+    token: ''  // Token由管理员首次输入后保存在localStorage
+};
+
+// 获取GitHub Token
+function getGithubToken() {
+    // 优先从localStorage获取
+    const saved = localStorage.getItem('githubToken');
+    if (saved) return saved;
+    return GITHUB_CONFIG.token;
+}
+
+// 保存Token到本地
+function saveToken(token) {
+    localStorage.setItem('githubToken', token);
+    alert('✓ Token已保存到本地浏览器');
+}
+
+// 检查并提示输入Token
+function ensureToken() {
+    let token = getGithubToken();
+    if (!token) {
+        token = prompt(
+            '首次使用需要配置GitHub Token\n\n' +
+            '请访问以下地址创建Fine-grained Token：\n' +
+            'https://github.com/settings/personal-access-tokens/new\n\n' +
+            '配置要点：\n' +
+            '1. Repository access: Only select repositories\n' +
+            '2. 选择: ched666/asset-calculator\n' +
+            '3. Permissions: Contents (Read and write)\n\n' +
+            '请输入Token（以ghp_开头）：'
+        );
+        if (token && token.startsWith('ghp_')) {
+            saveToken(token);
+            return token;
+        } else {
+            return null;
+        }
     }
-    
-    const config = {
-        user: githubUser,
-        repo: githubRepo,
-        token: githubToken
-    };
-    
-    localStorage.setItem('githubConfig', JSON.stringify(config));
-    alert('GitHub配置已保存到本地浏览器');
+    return token;
+}
+
+// 保存配置并发布（组合功能）
+function saveAndPublish() {
+    saveSchemes();
+    // 短暂延迟后发布，确保保存完成
+    setTimeout(() => {
+        publishToCloud();
+    }, 500);
 }
 
 // 发布配置到云端
 async function publishToCloud() {
     const statusDiv = document.getElementById('publishStatus');
     statusDiv.style.color = '#667eea';
-    statusDiv.textContent = '正在发布...';
+    statusDiv.textContent = '正在发布到云端...';
     
     try {
-        // 获取GitHub配置
-        const githubConfigStr = localStorage.getItem('githubConfig');
-        if (!githubConfigStr) {
-            throw new Error('请先配置并保存GitHub信息');
+        // 检查并获取Token
+        const token = ensureToken();
+        if (!token) {
+            throw new Error('未配置GitHub Token');
         }
-        
-        const githubConfig = JSON.parse(githubConfigStr);
         
         // 准备配置数据
         const config = {
@@ -745,13 +776,13 @@ async function publishToCloud() {
         const base64Content = btoa(unescape(encodeURIComponent(content)));
         
         // 先获取文件的SHA（如果文件已存在）
-        const getUrl = `https://api.github.com/repos/${githubConfig.user}/${githubConfig.repo}/contents/default-config.json`;
+        const getUrl = `https://api.github.com/repos/${GITHUB_CONFIG.user}/${GITHUB_CONFIG.repo}/contents/default-config.json`;
         let sha = null;
         
         try {
             const getResponse = await fetch(getUrl, {
                 headers: {
-                    'Authorization': `token ${githubConfig.token}`,
+                    'Authorization': `token ${GITHUB_CONFIG.token}`,
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
@@ -765,7 +796,7 @@ async function publishToCloud() {
         }
         
         // 更新或创建文件
-        const putUrl = `https://api.github.com/repos/${githubConfig.user}/${githubConfig.repo}/contents/default-config.json`;
+        const putUrl = `https://api.github.com/repos/${GITHUB_CONFIG.user}/${GITHUB_CONFIG.repo}/contents/default-config.json`;
         const body = {
             message: '更新默认配置 - 管理员发布',
             content: base64Content,
@@ -779,7 +810,7 @@ async function publishToCloud() {
         const response = await fetch(putUrl, {
             method: 'PUT',
             headers: {
-                'Authorization': `token ${githubConfig.token}`,
+                'Authorization': `token ${GITHUB_CONFIG.token}`,
                 'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json'
             },
@@ -792,7 +823,7 @@ async function publishToCloud() {
         }
         
         statusDiv.style.color = '#28a745';
-        statusDiv.innerHTML = '✅ 发布成功！配置已更新到云端<br><small>预计1-2分钟后生效</small>';
+        statusDiv.innerHTML = '✅ 发布成功！配置已同步到云端<br><small>新用户将在1-2分钟后看到更新</small>';
         
         setTimeout(() => {
             statusDiv.textContent = '';
@@ -805,18 +836,10 @@ async function publishToCloud() {
     }
 }
 
-// 页面加载时恢复GitHub配置
-document.addEventListener('DOMContentLoaded', function() {
-    const githubConfigStr = localStorage.getItem('githubConfig');
-    if (githubConfigStr) {
-        try {
-            const config = JSON.parse(githubConfigStr);
-            document.getElementById('githubUser').value = config.user || '';
-            document.getElementById('githubRepo').value = config.repo || '';
-            document.getElementById('githubToken').value = config.token || '';
-        } catch (e) {
-            console.error('加载GitHub配置失败', e);
-        }
+// 重置Token
+function resetToken() {
+    if (confirm('确定要清除已保存的GitHub Token吗？\n下次发布时需要重新输入。')) {
+        localStorage.removeItem('githubToken');
+        alert('✓ Token已清除');
     }
-});
-
+}

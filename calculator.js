@@ -51,6 +51,46 @@ async function initializeConfig() {
     }
 }
 
+// 同步云端配置
+async function syncCloudConfig() {
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.textContent = '同步中...';
+    btn.disabled = true;
+    
+    try {
+        const defaultConfig = await loadDefaultConfig();
+        if (defaultConfig) {
+            if (defaultConfig.productConfig) {
+                localStorage.setItem('productConfig', JSON.stringify(defaultConfig.productConfig));
+            }
+            if (defaultConfig.bankSchemes) {
+                localStorage.setItem('bankSchemes', JSON.stringify(defaultConfig.bankSchemes));
+            }
+            
+            btn.textContent = '✓ 同步成功';
+            btn.style.background = '#28a745';
+            
+            // 刷新页面以应用新配置
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            throw new Error('无法获取云端配置');
+        }
+    } catch (error) {
+        btn.textContent = '✗ 同步失败';
+        btn.style.background = '#e74c3c';
+        console.error('同步配置失败：', error);
+        
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.style.background = '';
+            btn.disabled = false;
+        }, 2000);
+    }
+}
+
 // 获取产品配置
 function getConfig() {
     const stored = localStorage.getItem('productConfig');
