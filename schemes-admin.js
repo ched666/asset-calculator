@@ -654,3 +654,47 @@ function collapseAll() {
         }
     });
 }
+
+// 导出配置
+function exportConfig() {
+    const config = {
+        bankSchemes: currentSchemes,
+        productConfig: JSON.parse(localStorage.getItem('productConfig') || '{}')
+    };
+    
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'asset-config.json';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// 导入配置
+function importConfig(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const config = JSON.parse(e.target.result);
+            
+            if (config.bankSchemes) {
+                localStorage.setItem('bankSchemes', JSON.stringify(config.bankSchemes));
+                currentSchemes = config.bankSchemes;
+                renderSchemes();
+            }
+            
+            if (config.productConfig) {
+                localStorage.setItem('productConfig', JSON.stringify(config.productConfig));
+            }
+            
+            alert('配置导入成功！');
+        } catch (error) {
+            alert('配置文件格式错误：' + error.message);
+        }
+    };
+    reader.readAsText(file);
+}

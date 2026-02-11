@@ -15,6 +15,42 @@ const DEFAULT_CONFIG = {
     ]
 };
 
+// 从服务器加载默认配置
+async function loadDefaultConfig() {
+    try {
+        const response = await fetch('default-config.json');
+        if (!response.ok) return null;
+        return await response.json();
+    } catch (error) {
+        console.log('无法加载默认配置，使用内置配置');
+        return null;
+    }
+}
+
+// 初始化配置（首次访问时从服务器加载）
+async function initializeConfig() {
+    const hasConfig = localStorage.getItem('productConfig');
+    const hasSchemes = localStorage.getItem('bankSchemes');
+    
+    // 如果已有配置，直接返回
+    if (hasConfig && hasSchemes) {
+        return;
+    }
+    
+    // 首次访问，尝试加载默认配置
+    const defaultConfig = await loadDefaultConfig();
+    if (defaultConfig) {
+        if (!hasConfig && defaultConfig.productConfig) {
+            localStorage.setItem('productConfig', JSON.stringify(defaultConfig.productConfig));
+            console.log('✓ 已加载默认产品配置');
+        }
+        if (!hasSchemes && defaultConfig.bankSchemes) {
+            localStorage.setItem('bankSchemes', JSON.stringify(defaultConfig.bankSchemes));
+            console.log('✓ 已加载默认推荐方案');
+        }
+    }
+}
+
 // 获取产品配置
 function getConfig() {
     const stored = localStorage.getItem('productConfig');
@@ -2169,7 +2205,10 @@ function deleteScheme(schemeId) {
 }
 
 // 页面加载时初始化
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
+    // 首次访问时加载默认配置
+    await initializeConfig();
+    
     // 初始化配置（如果不存在）
     if (!localStorage.getItem('productConfig')) {
         localStorage.setItem('productConfig', JSON.stringify(DEFAULT_CONFIG));

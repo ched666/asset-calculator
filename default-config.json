@@ -1,0 +1,43 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-02-11",
+  "bankSchemes": [
+    {
+      "name": "理财流动性优先方案",
+      "type": "wealth",
+      "preference": "liquidity",
+      "description": "T+1为主，随时可赎回",
+      "enabled": true,
+      "products": [
+        { "name": "T+1赎回", "ratio": 60 },
+        { "name": "7天赎回", "ratio": 40 }
+      ]
+    },
+    {
+      "name": "理财收益性优先方案",
+      "type": "wealth",
+      "preference": "yield",
+      "description": "T+1为主，兼顾时间可赎回",
+      "enabled": true,
+      "products": [
+        { "name": "T+1赎回", "ratio": 60 },
+        { "name": "7天赎回", "ratio": 40 }
+      ]
+    }
+  ],
+  "productConfig": {
+    "deposits": [
+      { "name": "活期存款", "clientRate": 0.05, "ftpRate": 2.4 },
+      { "name": "7天通知", "clientRate": 0.75, "ftpRate": 1.9 },
+      { "name": "3个月", "clientRate": 1.0, "ftpRate": 2.0 },
+      { "name": "6个月", "clientRate": 1.2, "ftpRate": 2.05 },
+      { "name": "1年", "clientRate": 1.3, "ftpRate": 2.15 }
+    ],
+    "wealth": [
+      { "name": "T+1赎回", "clientRate": 1.75, "commissionRate": 0.1 },
+      { "name": "7天赎回", "clientRate": 2.08, "commissionRate": 0.05 },
+      { "name": "14天赎回", "clientRate": 1.87, "commissionRate": 0.05 },
+      { "name": "3个月赎回", "clientRate": 2.0, "commissionRate": 0.05 }
+    ]
+  }
+}

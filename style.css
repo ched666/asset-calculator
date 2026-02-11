@@ -86,6 +86,15 @@ h3 {
     transition: border-color 0.3s;
 }
 
+/* 强制在移动端显示number input的上下箭头 */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: auto;
+    opacity: 1;
+    height: 40px;
+    margin: 0;
+}
+
 .form-group input:focus,
 .form-group select:focus {
     outline: none;

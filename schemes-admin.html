@@ -33,6 +33,9 @@
             <button class="btn-primary" onclick="addScheme()">+ 添加新方案</button>
             <button class="btn-primary" onclick="saveSchemes()">保存所有方案</button>
             <button class="btn-secondary" onclick="resetSchemes()">恢复默认方案</button>
+            <button class="btn-secondary" onclick="exportConfig()">📤 导出配置</button>
+            <button class="btn-secondary" onclick="document.getElementById('importFile').click()">📥 导入配置</button>
+            <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importConfig(event)">
         </div>
 
         <div id="saveMessage" class="save-message" style="display: none;">
