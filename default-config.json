@@ -148,7 +148,7 @@
           "ratio": 40
         }
       ],
-      "enabled": true
+      "enabled": false
     },
     {
       "id": 8,
@@ -170,7 +170,7 @@
           "ratio": 50
         }
       ],
-      "enabled": true
+      "enabled": false
     },
     {
       "id": 9,
