@@ -737,7 +737,7 @@ function ensureToken() {
             '❗ 或者使用Classic Token：\n' +
             'https://github.com/settings/tokens\n' +
             '勾选 repo 权限\n\n' +
-            '请输入Token（以ghp_开头）：';
+            '请输入Token：';
         
         token = prompt(instructions);
         
@@ -748,8 +748,9 @@ function ensureToken() {
         // 去除首尾空格
         token = token.trim();
         
-        if (!token.startsWith('ghp_')) {
-            alert('❌ Token格式错误！\n\nGitHub Token必须以 "ghp_" 开头。\n请检查是否复制完整。');
+        // 验证Token格式
+        if (!token.startsWith('ghp_') && !token.startsWith('github_pat_')) {
+            alert('❌ Token格式错误！\n\nGitHub Token格式：\n• Fine-grained Token: 以 "github_pat_" 开头\n• Classic Token: 以 "ghp_" 开头\n\n请检查是否复制完整。');
             return null;
         }
         
