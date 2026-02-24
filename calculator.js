@@ -2379,17 +2379,29 @@ async function exportSchemeAsImage(solutionIndex) {
         // 创建一个临时容器用于渲染
         const exportContainer = document.createElement('div');
         exportContainer.style.cssText = `
-            position: absolute;
-            left: -9999px;
+            position: fixed;
+            left: 0;
             top: 0;
             width: 800px;
             padding: 30px;
-            background: white;
+            background: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            z-index: -9999;
+            opacity: 0;
+            pointer-events: none;
         `;
         
         // 克隆方案卡片
         const clone = solutionCard.cloneNode(true);
+        
+        // 强制设置背景色，确保清晰可见
+        clone.style.cssText = `
+            background: #ffffff;
+            box-shadow: none;
+            border: none;
+            margin: 0;
+            padding: 20px;
+        `;
         
         // 移除操作按钮
         const actionButtons = clone.querySelector('.action-buttons');
@@ -2403,11 +2415,21 @@ async function exportSchemeAsImage(solutionIndex) {
         const contentDiv = clone.querySelector('.solution-content');
         if (contentDiv) {
             contentDiv.style.display = 'block';
+            contentDiv.style.visibility = 'visible';
+            contentDiv.style.opacity = '1';
         }
+        
+        // 确保所有子元素可见
+        const allElements = clone.querySelectorAll('*');
+        allElements.forEach(el => {
+            if (el.style.display === 'none' && !el.classList.contains('action-buttons')) {
+                el.style.display = 'block';
+            }
+        });
         
         // 添加水印和时间戳
         const watermark = document.createElement('div');
-        watermark.style.cssText = 'text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 12px;';
+        watermark.style.cssText = 'text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 12px; background: transparent;';
         watermark.innerHTML = `
             <div>资产配置计算器</div>
             <div>生成时间：${new Date().toLocaleString()}</div>
@@ -2417,15 +2439,19 @@ async function exportSchemeAsImage(solutionIndex) {
         exportContainer.appendChild(clone);
         document.body.appendChild(exportContainer);
         
+        // 等待样式加载完成
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         // 渲染为canvas
         const canvas = await html2canvas(exportContainer, {
             scale: 3,
             backgroundColor: '#ffffff',
             logging: false,
             useCORS: true,
-            allowTaint: true,
-            windowWidth: 1920,
-            windowHeight: 1080
+            allowTaint: false,
+            removeContainer: false,
+            imageTimeout: 0,
+            foreignObjectRendering: false
         });
         
         // 清理临时容器
@@ -2480,12 +2506,18 @@ function exportSchemeAsExcel(solutionIndex) {
         
         // 产品明细数据
         if (solutionData.allocations) {
-            // 混合配置
-            solutionData.allocations.forEach(({ product, ratio }) => {
+            // 混合配置或已保存方案
+            solutionData.allocations.forEach(allocation => {
+                // 处理两种数据结构
+                const product = allocation.product || allocation;
+                const ratio = allocation.ratio;
+                
                 if (ratio > 0.01) {
-                    const typeLabel = product.type === 'deposit' ? '存款' : '理财';
+                    const productName = product.name;
+                    const productType = product.type === 'deposit' ? '存款' : '理财';
+                    const productRate = product.clientRate || product.rate || 0;
                     const amount = solutionData.amount * ratio / 100;
-                    csvContent += `${product.name},${typeLabel},${ratio.toFixed(2)}%,${product.clientRate.toFixed(2)}%,${amount.toFixed(2)}\n`;
+                    csvContent += `${productName},${productType},${ratio.toFixed(2)}%,${productRate.toFixed(2)}%,${amount.toFixed(2)}\n`;
                 }
             });
         } else if (solutionData.allocation) {
