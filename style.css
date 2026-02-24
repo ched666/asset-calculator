@@ -709,6 +709,42 @@ input[type="number"]::-webkit-outer-spin-button {
     font-weight: 500;
 }
 
+/* 新的产品明细表头样式 */
+.product-details-section .product-details-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px 16px;
+    background: rgba(102, 126, 234, 0.08);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.product-details-section .header-label {
+    font-size: 16px;
+}
+
+.product-details-section .header-metrics {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.product-details-section .header-ratio {
+    min-width: 70px;
+    text-align: right;
+    color: #667eea;
+}
+
+.product-details-section .header-rate {
+    min-width: 60px;
+    text-align: right;
+    color: #667eea;
+}
+
 .product-detail-item {
     display: flex;
     justify-content: space-between;
@@ -1490,13 +1526,12 @@ input[type="number"]::-webkit-outer-spin-button {
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 4px rgba(102, 126, 234, 0.1);
+    gap: 10px;
 }
 
 .scheme-checkbox {
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex: 1;
     cursor: pointer;
 }
 
@@ -1839,6 +1874,9 @@ input[type="number"]::-webkit-outer-spin-button {
     color: #667eea;
     text-decoration: none;
     transition: all 0.2s ease;
+    flex: 1;
+    margin-left: 10px;
+    font-weight: 500;
 }
 
 .scheme-name-clickable:hover {

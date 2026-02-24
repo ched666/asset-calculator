@@ -1090,11 +1090,11 @@ function showMultipleResults(solutions, amount, allocationType) {
             </div>
             ${productDetailsHTML ? `
             <div class="product-details-section">
-                <div class="section-title">
-                    <span>产品明细</span>
-                    <div class="legend">
-                        <span class="legend-item"><span class="legend-label">比例</span></span>
-                        <span class="legend-item"><span class="legend-label">收益率</span></span>
+                <div class="product-details-header">
+                    <span class="header-label">产品明细</span>
+                    <div class="header-metrics">
+                        <span class="header-ratio">比例</span>
+                        <span class="header-rate">收益率</span>
                     </div>
                 </div>
                 ${productDetailsHTML}
@@ -2085,8 +2085,8 @@ function loadSavedSchemes() {
                 <div class="saved-scheme-item">
                     <label class="scheme-checkbox">
                         <input type="checkbox" id="scheme_${scheme.id}" onchange="toggleSchemeComparison()">
-                        <span class="scheme-name-clickable" onclick="showSavedSchemeDetail(${scheme.id})" title="点击查看详情">${scheme.name}</span>
                     </label>
+                    <span class="scheme-name-clickable" onclick="event.stopPropagation(); showSavedSchemeDetail(${scheme.id})" title="点击查看详情">${scheme.name}</span>
                     <span class="scheme-rate">${scheme.clientRate.toFixed(2)}%</span>
                     <button class="btn-delete-scheme" onclick="deleteScheme(${scheme.id})">删除</button>
                 </div>
@@ -2390,6 +2390,16 @@ async function exportSchemeAsImage(solutionIndex) {
         const actionButtons = clone.querySelector('.action-buttons');
         if (actionButtons) actionButtons.remove();
         
+        // 移除折叠按钮
+        const collapseBtn = clone.querySelector('.btn-collapse');
+        if (collapseBtn) collapseBtn.remove();
+        
+        // 确保内容区域可见
+        const contentDiv = clone.querySelector('.solution-content');
+        if (contentDiv) {
+            contentDiv.style.display = 'block';
+        }
+        
         // 添加水印和时间戳
         const watermark = document.createElement('div');
         watermark.style.cssText = 'text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 12px;';
@@ -2406,7 +2416,9 @@ async function exportSchemeAsImage(solutionIndex) {
         const canvas = await html2canvas(exportContainer, {
             scale: 2,
             backgroundColor: '#ffffff',
-            logging: false
+            logging: false,
+            useCORS: true,
+            allowTaint: true
         });
         
         // 清理临时容器
