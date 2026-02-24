@@ -2376,60 +2376,41 @@ async function exportSchemeAsImage(solutionIndex) {
     }
     
     try {
+        // 显示导出提示
+        console.log('正在生成图片...');
+        
         // 创建一个临时容器用于渲染
         const exportContainer = document.createElement('div');
         exportContainer.style.cssText = `
-            position: fixed;
-            left: 0;
+            position: absolute;
+            left: -99999px;
             top: 0;
-            width: 800px;
-            padding: 30px;
+            width: 850px;
+            padding: 20px;
             background: #ffffff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-            z-index: -9999;
-            opacity: 0;
-            pointer-events: none;
         `;
+        exportContainer.id = 'export-temp-container';
         
         // 克隆方案卡片
         const clone = solutionCard.cloneNode(true);
         
-        // 强制设置背景色，确保清晰可见
-        clone.style.cssText = `
-            background: #ffffff;
-            box-shadow: none;
-            border: none;
-            margin: 0;
-            padding: 20px;
-        `;
-        
-        // 移除操作按钮
+        // 移除不需要的元素
         const actionButtons = clone.querySelector('.action-buttons');
         if (actionButtons) actionButtons.remove();
         
-        // 移除折叠按钮
         const collapseBtn = clone.querySelector('.btn-collapse');
         if (collapseBtn) collapseBtn.remove();
         
-        // 确保内容区域可见
+        // 确保内容区域完全展开
         const contentDiv = clone.querySelector('.solution-content');
         if (contentDiv) {
             contentDiv.style.display = 'block';
-            contentDiv.style.visibility = 'visible';
-            contentDiv.style.opacity = '1';
         }
         
-        // 确保所有子元素可见
-        const allElements = clone.querySelectorAll('*');
-        allElements.forEach(el => {
-            if (el.style.display === 'none' && !el.classList.contains('action-buttons')) {
-                el.style.display = 'block';
-            }
-        });
-        
-        // 添加水印和时间戳
+        // 添加水印
         const watermark = document.createElement('div');
-        watermark.style.cssText = 'text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 12px; background: transparent;';
+        watermark.style.cssText = 'text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 12px;';
         watermark.innerHTML = `
             <div>资产配置计算器</div>
             <div>生成时间：${new Date().toLocaleString()}</div>
@@ -2439,19 +2420,16 @@ async function exportSchemeAsImage(solutionIndex) {
         exportContainer.appendChild(clone);
         document.body.appendChild(exportContainer);
         
-        // 等待样式加载完成
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // 等待浏览器渲染完成
+        await new Promise(resolve => setTimeout(resolve, 300));
         
         // 渲染为canvas
         const canvas = await html2canvas(exportContainer, {
-            scale: 3,
+            scale: 2,
             backgroundColor: '#ffffff',
-            logging: false,
+            logging: true,
             useCORS: true,
-            allowTaint: false,
-            removeContainer: false,
-            imageTimeout: 0,
-            foreignObjectRendering: false
+            allowTaint: true
         });
         
         // 清理临时容器
@@ -2502,7 +2480,7 @@ function exportSchemeAsExcel(solutionIndex) {
         
         // 产品明细表头
         csvContent += '产品明细\n';
-        csvContent += '产品名称,产品类型,配置比例,收益率,配置金额(万元)\n';
+        csvContent += '产品名称,产品类型,配置比例,收益率,配置金额(万元),配置收益(万元)\n';
         
         // 产品明细数据
         if (solutionData.allocations) {
@@ -2517,7 +2495,8 @@ function exportSchemeAsExcel(solutionIndex) {
                     const productType = product.type === 'deposit' ? '存款' : '理财';
                     const productRate = product.clientRate || product.rate || 0;
                     const amount = solutionData.amount * ratio / 100;
-                    csvContent += `${productName},${productType},${ratio.toFixed(2)}%,${productRate.toFixed(2)}%,${amount.toFixed(2)}\n`;
+                    const profit = amount * productRate / 100;
+                    csvContent += `${productName},${productType},${ratio.toFixed(2)}%,${productRate.toFixed(2)}%,${amount.toFixed(2)},${profit.toFixed(2)}\n`;
                 }
             });
         } else if (solutionData.allocation) {
@@ -2529,7 +2508,8 @@ function exportSchemeAsExcel(solutionIndex) {
                 if (ratio > 0.01) {
                     const product = products[idx];
                     const amount = solutionData.amount * ratio / 100;
-                    csvContent += `${product.name},${typeLabel},${ratio.toFixed(2)}%,${product.clientRate.toFixed(2)}%,${amount.toFixed(2)}\n`;
+                    const profit = amount * product.clientRate / 100;
+                    csvContent += `${product.name},${typeLabel},${ratio.toFixed(2)}%,${product.clientRate.toFixed(2)}%,${amount.toFixed(2)},${profit.toFixed(2)}\n`;
                 }
             });
         }
