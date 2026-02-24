@@ -52,8 +52,13 @@ async function initializeConfig() {
 }
 
 // 同步云端配置
-async function syncCloudConfig() {
-    const btn = event.target;
+async function syncCloudConfig(event) {
+    const btn = event ? event.target : document.querySelector('button[onclick*="syncCloudConfig"]');
+    if (!btn) {
+        alert('无法找到同步按钮');
+        return;
+    }
+    
     const originalText = btn.textContent;
     btn.textContent = '同步中...';
     btn.disabled = true;
