@@ -798,7 +798,7 @@ async function publishToCloud() {
         try {
             const getResponse = await fetch(getUrl, {
                 headers: {
-                    'Authorization': `token ${GITHUB_CONFIG.token}`,
+                    'Authorization': `token ${token}`,
                     'Accept': 'application/vnd.github.v3+json'
                 }
             });
@@ -826,7 +826,7 @@ async function publishToCloud() {
         const response = await fetch(putUrl, {
             method: 'PUT',
             headers: {
-                'Authorization': `token ${GITHUB_CONFIG.token}`,
+                'Authorization': `token ${token}`,
                 'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json'
             },
