@@ -724,22 +724,37 @@ function saveToken(token) {
 function ensureToken() {
     let token = getGithubToken();
     if (!token) {
-        token = prompt(
-            '首次使用需要配置GitHub Token\n\n' +
-            '请访问以下地址创建Fine-grained Token：\n' +
+        const instructions = 
+            '⚠️ 首次使用需要配置GitHub Token\n\n' +
+            '🔑 创建Fine-grained Token（推荐）：\n' +
             'https://github.com/settings/personal-access-tokens/new\n\n' +
-            '配置要点：\n' +
-            '1. Repository access: Only select repositories\n' +
-            '2. 选择: ched666/asset-calculator\n' +
-            '3. Permissions: Contents (Read and write)\n\n' +
-            '请输入Token（以ghp_开头）：'
-        );
-        if (token && token.startsWith('ghp_')) {
-            saveToken(token);
-            return token;
-        } else {
+            '🎯 配置要点：\n' +
+            '1. Token name: asset-calculator-publisher\n' +
+            '2. Repository access: Only select repositories\n' +
+            '3. 选择: ched666/asset-calculator\n' +
+            '4. Permissions > Contents: Read and write\n' +
+            '5. 点击"Generate token"并复制\n\n' +
+            '❗ 或者使用Classic Token：\n' +
+            'https://github.com/settings/tokens\n' +
+            '勾选 repo 权限\n\n' +
+            '请输入Token（以ghp_开头）：';
+        
+        token = prompt(instructions);
+        
+        if (!token) {
             return null;
         }
+        
+        // 去除首尾空格
+        token = token.trim();
+        
+        if (!token.startsWith('ghp_')) {
+            alert('❌ Token格式错误！\n\nGitHub Token必须以 "ghp_" 开头。\n请检查是否复制完整。');
+            return null;
+        }
+        
+        saveToken(token);
+        return token;
     }
     return token;
 }
@@ -819,7 +834,17 @@ async function publishToCloud() {
         
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || '发布失败');
+            
+            // 根据错误类型给出具体提示
+            if (response.status === 401) {
+                throw new Error('Token无效或已过期，请点击"🔑 重置Token"后重新配置');
+            } else if (response.status === 403) {
+                throw new Error('Token权限不足，需要Contents的Read and write权限');
+            } else if (response.status === 404) {
+                throw new Error('仓库不存在或Token无访问权限');
+            } else {
+                throw new Error(error.message || `HTTP ${response.status}`);
+            }
         }
         
         statusDiv.style.color = '#28a745';
@@ -840,6 +865,53 @@ async function publishToCloud() {
 function resetToken() {
     if (confirm('确定要清除已保存的GitHub Token吗？\n下次发布时需要重新输入。')) {
         localStorage.removeItem('githubToken');
-        alert('✓ Token已清除');
+        alert('✅ Token已清除，下次发布时将重新提示输入。');
     }
+}
+
+// 测试Token是否有效
+async function testToken() {
+    const statusDiv = document.getElementById('publishStatus');
+    const token = getGithubToken();
+    
+    if (!token) {
+        statusDiv.style.color = '#e74c3c';
+        statusDiv.textContent = '⚠️ 未配置Token，请点击"发布共享"进行配置';
+        return;
+    }
+    
+    statusDiv.style.color = '#667eea';
+    statusDiv.textContent = '正在测试Token...';
+    
+    try {
+        const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.user}/${GITHUB_CONFIG.repo}`, {
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+        
+        if (response.ok) {
+            statusDiv.style.color = '#28a745';
+            statusDiv.innerHTML = '✅ Token有效！可以正常发布配置。';
+        } else if (response.status === 401) {
+            statusDiv.style.color = '#e74c3c';
+            statusDiv.innerHTML = '❌ Token无效或已过期<br><small>请点击"🔑 重置Token"后重新配置</small>';
+        } else if (response.status === 403) {
+            statusDiv.style.color = '#e74c3c';
+            statusDiv.innerHTML = '❌ Token权限不足<br><small>需要Contents的Read and write权限</small>';
+        } else if (response.status === 404) {
+            statusDiv.style.color = '#e74c3c';
+            statusDiv.innerHTML = '❌ 仓库不存在或无访问权限<br><small>请检查Token是否有asset-calculator仓库权限</small>';
+        } else {
+            throw new Error(`HTTP ${response.status}`);
+        }
+    } catch (error) {
+        statusDiv.style.color = '#e74c3c';
+        statusDiv.textContent = '❌ 测试失败：' + error.message;
+    }
+    
+    setTimeout(() => {
+        statusDiv.textContent = '';
+    }, 5000);
 }
