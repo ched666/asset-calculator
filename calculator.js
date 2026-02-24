@@ -1023,8 +1023,79 @@ function showMultipleResults(solutions, amount, allocationType) {
             preferenceBadge = '<span class="preference-badge balance">平衡组合</span>';
         }
         
-        // 对于自定义配置，不显示银行收益
+        // 对于自定义配置，显示详细的产品信息
+        let productDetailsHTML = '';
+        if (solution.allocations) {
+            // 混合配置
+            productDetailsHTML = solution.allocations
+                .filter(({ ratio }) => ratio > 0.01)
+                .map(({ product, ratio }) => {
+                    const typeLabel = product.type === 'deposit' ? '存款' : '理财';
+                    const rate = product.type === 'deposit' ? product.clientRate : product.clientRate;
+                    return `
+                        <div class="product-detail-item">
+                            <div class="product-info">
+                                <span class="product-name">${product.name}</span>
+                                <span class="product-type">${typeLabel}</span>
+                            </div>
+                            <div class="product-metrics">
+                                <span class="product-ratio">${ratio.toFixed(2)}%</span>
+                                <span class="product-rate">${rate.toFixed(2)}%</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+        } else if (solution.allocation) {
+            // 单一类型配置
+            const config = getConfig();
+            const products = allocationType === 'deposit' ? config.deposits : config.wealth;
+            productDetailsHTML = solution.allocation
+                .map((ratio, idx) => {
+                    if (ratio > 0.01) {
+                        const product = products[idx];
+                        const rate = allocationType === 'deposit' ? product.clientRate : product.clientRate;
+                        const typeLabel = allocationType === 'deposit' ? '存款' : '理财';
+                        return `
+                            <div class="product-detail-item">
+                                <div class="product-info">
+                                    <span class="product-name">${product.name}</span>
+                                    <span class="product-type">${typeLabel}</span>
+                                </div>
+                                <div class="product-metrics">
+                                    <span class="product-ratio">${ratio.toFixed(2)}%</span>
+                                    <span class="product-rate">${rate.toFixed(2)}%</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    return '';
+                })
+                .filter(html => html)
+                .join('');
+        }
+        
         const summaryItems = solution.isCustom ? `
+            <div class="summary-item highlight">
+                <span class="label">客户综合收益率：</span>
+                <span class="value">${solution.clientRate.toFixed(2)}%</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">使用产品数量：</span>
+                <span class="value">${solution.allocations ? solution.allocations.filter(a => a.ratio > 0.01).length : (solution.allocation ? solution.allocation.filter(r => r > 0.01).length : 0)} 个</span>
+            </div>
+            ${productDetailsHTML ? `
+            <div class="product-details-section">
+                <div class="section-title">
+                    <span>产品明细</span>
+                    <div class="legend">
+                        <span class="legend-item"><span class="legend-label">比例</span></span>
+                        <span class="legend-item"><span class="legend-label">收益率</span></span>
+                    </div>
+                </div>
+                ${productDetailsHTML}
+            </div>
+            ` : ''}
+        ` : `
             <div class="summary-item">
                 <span class="label">客户综合收益率：</span>
                 <span class="value">${solution.clientRate.toFixed(2)}%</span>
@@ -1073,8 +1144,19 @@ function showMultipleResults(solutions, amount, allocationType) {
             <h3>配置明细</h3>
             <div class="allocation-details-container"></div>
             
-            ${solution.isCustom ? '<button class="btn-primary" onclick="saveCustomScheme()">保存为方案</button>' : ''}
+            <div class="action-buttons">
+                ${solution.isCustom ? '<button class="btn-primary" onclick="saveCustomScheme()">💾 保存为方案</button>' : ''}
+                <button class="btn-secondary" onclick="exportSchemeAsImage(${index})">📷 导出为图片</button>
+                <button class="btn-secondary" onclick="exportSchemeAsExcel(${index})">📊 导出为Excel</button>
+            </div>
         `;
+        
+        // 为导出功能存储方案数据
+        solutionDiv.setAttribute('data-solution', JSON.stringify({
+            ...solution,
+            amount: amount,
+            allocationType: allocationType
+        }));
         
         resultSection.appendChild(solutionDiv);
         
@@ -2263,3 +2345,161 @@ document.addEventListener('DOMContentLoaded', async function() {
     // 加载已保存的自定义方案
     loadSavedSchemes();
 });
+
+// 导出方案为图片
+async function exportSchemeAsImage(solutionIndex) {
+    const solutionCards = document.querySelectorAll('.solution-card');
+    const solutionCard = solutionCards[solutionIndex];
+    
+    if (!solutionCard) {
+        alert('未找到方案数据');
+        return;
+    }
+    
+    // 检查是否已加载html2canvas库
+    if (typeof html2canvas === 'undefined') {
+        alert('正在加载导出功能...');
+        // 动态加载html2canvas库
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+        script.onload = () => exportSchemeAsImage(solutionIndex);
+        document.head.appendChild(script);
+        return;
+    }
+    
+    try {
+        // 创建一个临时容器用于渲染
+        const exportContainer = document.createElement('div');
+        exportContainer.style.cssText = `
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            width: 800px;
+            padding: 30px;
+            background: white;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        `;
+        
+        // 克隆方案卡片
+        const clone = solutionCard.cloneNode(true);
+        
+        // 移除操作按钮
+        const actionButtons = clone.querySelector('.action-buttons');
+        if (actionButtons) actionButtons.remove();
+        
+        // 添加水印和时间戳
+        const watermark = document.createElement('div');
+        watermark.style.cssText = 'text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 12px;';
+        watermark.innerHTML = `
+            <div>资产配置计算器</div>
+            <div>生成时间：${new Date().toLocaleString()}</div>
+        `;
+        clone.appendChild(watermark);
+        
+        exportContainer.appendChild(clone);
+        document.body.appendChild(exportContainer);
+        
+        // 渲染为canvas
+        const canvas = await html2canvas(exportContainer, {
+            scale: 2,
+            backgroundColor: '#ffffff',
+            logging: false
+        });
+        
+        // 清理临时容器
+        document.body.removeChild(exportContainer);
+        
+        // 下载图片
+        canvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `资产配置方案_${new Date().toLocaleDateString()}.png`;
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+        
+    } catch (error) {
+        console.error('导出失败：', error);
+        alert('导出失败，请重试');
+    }
+}
+
+// 导出方案为Excel
+function exportSchemeAsExcel(solutionIndex) {
+    const solutionCards = document.querySelectorAll('.solution-card');
+    const solutionCard = solutionCards[solutionIndex];
+    
+    if (!solutionCard) {
+        alert('未找到方案数据');
+        return;
+    }
+    
+    try {
+        // 获取方案数据
+        const solutionData = JSON.parse(solutionCard.getAttribute('data-solution'));
+        const config = getConfig();
+        
+        // 构建Excel内容(使用CSV格式，Excel可以打开)
+        let csvContent = '\ufeff'; // UTF-8 BOM
+        
+        // 标题
+        csvContent += '资产配置推荐方案\n\n';
+        
+        // 基本信息
+        csvContent += '方案信息\n';
+        csvContent += `生成时间,${new Date().toLocaleString()}\n`;
+        csvContent += `资金金额,${solutionData.amount} 万元\n`;
+        csvContent += `客户综合收益率,${solutionData.clientRate.toFixed(2)}%\n\n`;
+        
+        // 产品明细表头
+        csvContent += '产品明细\n';
+        csvContent += '产品名称,产品类型,配置比例,收益率,配置金额(万元)\n';
+        
+        // 产品明细数据
+        if (solutionData.allocations) {
+            // 混合配置
+            solutionData.allocations.forEach(({ product, ratio }) => {
+                if (ratio > 0.01) {
+                    const typeLabel = product.type === 'deposit' ? '存款' : '理财';
+                    const amount = solutionData.amount * ratio / 100;
+                    csvContent += `${product.name},${typeLabel},${ratio.toFixed(2)}%,${product.clientRate.toFixed(2)}%,${amount.toFixed(2)}\n`;
+                }
+            });
+        } else if (solutionData.allocation) {
+            // 单一类型配置
+            const products = solutionData.allocationType === 'deposit' ? config.deposits : config.wealth;
+            const typeLabel = solutionData.allocationType === 'deposit' ? '存款' : '理财';
+            
+            solutionData.allocation.forEach((ratio, idx) => {
+                if (ratio > 0.01) {
+                    const product = products[idx];
+                    const amount = solutionData.amount * ratio / 100;
+                    csvContent += `${product.name},${typeLabel},${ratio.toFixed(2)}%,${product.clientRate.toFixed(2)}%,${amount.toFixed(2)}\n`;
+                }
+            });
+        }
+        
+        // 汇总信息
+        csvContent += '\n汇总信息\n';
+        const productCount = solutionData.allocations 
+            ? solutionData.allocations.filter(a => a.ratio > 0.01).length 
+            : solutionData.allocation.filter(r => r > 0.01).length;
+        csvContent += `使用产品数量,${productCount} 个\n`;
+        csvContent += `综合收益率,${solutionData.clientRate.toFixed(2)}%\n`;
+        csvContent += `年化收益,${(solutionData.amount * solutionData.clientRate / 100).toFixed(2)} 万元\n`;
+        
+        // 创建下载链接
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `资产配置方案_${new Date().toLocaleDateString()}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+    } catch (error) {
+        console.error('导出失败：', error);
+        alert('导出失败，请重试');
+    }
+}
