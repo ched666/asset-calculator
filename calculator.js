@@ -1040,11 +1040,11 @@ function showMultipleResults(solutions, amount, allocationType) {
                     return `
                         <div class="product-detail-item">
                             <div class="product-info">
-                                <span class="product-name">${product.name}</span>
                                 <span class="product-type">${typeLabel}</span>
+                                <span class="product-name">${product.name}</span>
                             </div>
                             <div class="product-metrics">
-                                <span class="product-ratio">${ratio.toFixed(2)}%</span>
+                                <span class="product-ratio">${ratio.toFixed(1)}%</span>
                                 <span class="product-rate">${rate.toFixed(2)}%</span>
                             </div>
                         </div>
@@ -1063,11 +1063,11 @@ function showMultipleResults(solutions, amount, allocationType) {
                         return `
                             <div class="product-detail-item">
                                 <div class="product-info">
-                                    <span class="product-name">${product.name}</span>
                                     <span class="product-type">${typeLabel}</span>
+                                    <span class="product-name">${product.name}</span>
                                 </div>
                                 <div class="product-metrics">
-                                    <span class="product-ratio">${ratio.toFixed(2)}%</span>
+                                    <span class="product-ratio">${ratio.toFixed(1)}%</span>
                                     <span class="product-rate">${rate.toFixed(2)}%</span>
                                 </div>
                             </div>
@@ -1128,22 +1128,29 @@ function showMultipleResults(solutions, amount, allocationType) {
         solutionDiv.innerHTML = `
             <div class="solution-header">
                 <h2 class="solution-title">推荐方案</h2>
-                ${preferenceBadge}
+                <div class="header-actions">
+                    ${preferenceBadge}
+                    <button class="btn-collapse" onclick="toggleSolutionCollapse(${index})" title="折叠/展开">
+                        ▼
+                    </button>
+                </div>
             </div>
             
-            ${solution.description ? `<div class="solution-description">${solution.description}</div>` : ''}
-            
-            <div class="summary">
-                ${summaryItems}
-            </div>
+            <div class="solution-content" id="solution_content_${index}">
+                ${solution.description ? `<div class="solution-description">${solution.description}</div>` : ''}
+                
+                <div class="summary">
+                    ${summaryItems}
+                </div>
 
-            <h3>配置明细</h3>
-            <div class="allocation-details-container"></div>
-            
-            <div class="action-buttons">
-                ${solution.isCustom ? '<button class="btn-primary" onclick="saveCustomScheme()">💾 保存为方案</button>' : ''}
-                <button class="btn-secondary" onclick="exportSchemeAsImage(${index})">📷 导出为图片</button>
-                <button class="btn-secondary" onclick="exportSchemeAsExcel(${index})">📊 导出为Excel</button>
+                <h3>配置明细</h3>
+                <div class="allocation-details-container"></div>
+                
+                <div class="action-buttons">
+                    ${solution.isCustom ? '<button class="btn-primary" onclick="saveCustomScheme()">💾 保存为方案</button>' : ''}
+                    <button class="btn-secondary" onclick="exportSchemeAsImage(${index})">📷 导出为图片</button>
+                    <button class="btn-secondary" onclick="exportSchemeAsExcel(${index})">📊 导出为Excel</button>
+                </div>
             </div>
         `;
         
@@ -2078,7 +2085,7 @@ function loadSavedSchemes() {
                 <div class="saved-scheme-item">
                     <label class="scheme-checkbox">
                         <input type="checkbox" id="scheme_${scheme.id}" onchange="toggleSchemeComparison()">
-                        <span>${scheme.name}</span>
+                        <span class="scheme-name-clickable" onclick="showSavedSchemeDetail(${scheme.id})" title="点击查看详情">${scheme.name}</span>
                     </label>
                     <span class="scheme-rate">${scheme.clientRate.toFixed(2)}%</span>
                     <button class="btn-delete-scheme" onclick="deleteScheme(${scheme.id})">删除</button>
@@ -2497,5 +2504,87 @@ function exportSchemeAsExcel(solutionIndex) {
     } catch (error) {
         console.error('导出失败：', error);
         alert('导出失败，请重试');
+    }
+}
+
+// 折叠/展开推荐方案
+function toggleSolutionCollapse(index) {
+    const contentDiv = document.getElementById(`solution_content_${index}`);
+    const button = event.target;
+    
+    if (contentDiv) {
+        const isCollapsed = contentDiv.style.display === 'none';
+        contentDiv.style.display = isCollapsed ? 'block' : 'none';
+        button.textContent = isCollapsed ? '▼' : '▲';
+        button.classList.toggle('collapsed', !isCollapsed);
+    }
+}
+
+// 展示已保存方案的详细信息
+function showSavedSchemeDetail(schemeId) {
+    const savedSchemes = JSON.parse(localStorage.getItem('savedCustomSchemes') || '[]');
+    const scheme = savedSchemes.find(s => s.id === schemeId);
+    
+    if (!scheme) {
+        alert('方案不存在');
+        return;
+    }
+    
+    // 移除现有的详情显示
+    const existingDetail = document.querySelector('.saved-scheme-detail');
+    if (existingDetail) {
+        existingDetail.remove();
+    }
+    
+    // 生成详情HTML
+    let detailHTML = `
+        <div class="saved-scheme-detail">
+            <h4>${scheme.name} - 详细信息</h4>
+            <div class="scheme-detail-summary">
+                <div class="detail-item">
+                    <span class="label">客户总收益率：</span>
+                    <span class="value highlight">${scheme.clientRate.toFixed(2)}%</span>
+                </div>
+                <div class="detail-item">
+                    <span class="label">配置总金额：</span>
+                    <span class="value">¥${scheme.totalAmount.toLocaleString()}</span>
+                </div>
+            </div>
+            <div class="scheme-products-detail">
+                <h5>产品明细</h5>
+    `;
+    
+    scheme.products.forEach(product => {
+        const amount = product.amount || 0;
+        const ratio = scheme.totalAmount > 0 ? (amount / scheme.totalAmount * 100) : 0;
+        const typeLabel = product.type === 'deposit' ? '存款' : '理财';
+        
+        detailHTML += `
+            <div class="product-detail-item">
+                <div class="product-info">
+                    <span class="product-type">${typeLabel}</span>
+                    <span class="product-name">${product.name}</span>
+                </div>
+                <div class="product-metrics">
+                    <span class="product-ratio">${ratio.toFixed(1)}%</span>
+                    <span class="product-rate">${product.rate}%</span>
+                    <span class="product-amount">¥${amount.toLocaleString()}</span>
+                </div>
+            </div>
+        `;
+    });
+    
+    detailHTML += `
+            </div>
+            <button class="btn-close-detail" onclick="this.parentElement.remove()">关闭</button>
+        </div>
+    `;
+    
+    // 插入到已保存方案列表之后
+    const savedSchemesList = document.querySelector('.saved-schemes-list');
+    if (savedSchemesList) {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = detailHTML;
+        savedSchemesList.parentElement.insertBefore(tempDiv.firstElementChild, savedSchemesList.nextSibling);
     }
 }

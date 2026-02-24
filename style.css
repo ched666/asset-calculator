@@ -759,9 +759,12 @@ input[type="number"]::-webkit-outer-spin-button {
 .product-detail-item .product-ratio {
     font-size: 15px;
     font-weight: 600;
-    color: #667eea;
-    min-width: 60px;
+    color: #2c3e50;
+    min-width: 70px;
     text-align: right;
+    background: rgba(102, 126, 234, 0.1);
+    padding: 4px 10px;
+    border-radius: 4px;
 }
 
 .product-detail-item .product-rate {
@@ -1794,5 +1797,121 @@ input[type="number"]::-webkit-outer-spin-button {
     .comparison-container h2 {
         font-size: 20px;
     }
+}
+
+/* 推荐方案头部操作按钮区域 */
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* 折叠/展开按钮 */
+.btn-collapse {
+    background: transparent;
+    border: 1px solid #ddd;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: #666;
+}
+
+.btn-collapse:hover {
+    background: #f5f5f5;
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.btn-collapse.collapsed {
+    transform: rotate(-90deg);
+}
+
+/* 已保存方案名称可点击样式 */
+.scheme-name-clickable {
+    cursor: pointer;
+    color: #667eea;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.scheme-name-clickable:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+/* 已保存方案详细信息展示 */
+.saved-scheme-detail {
+    margin-top: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.saved-scheme-detail h4 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+.saved-scheme-detail h5 {
+    color: #667eea;
+    margin: 20px 0 10px 0;
+    font-size: 16px;
+}
+
+.scheme-detail-summary {
+    display: flex;
+    gap: 30px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.scheme-detail-summary .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.scheme-detail-summary .label {
+    color: #666;
+    font-size: 14px;
+}
+
+.scheme-detail-summary .value {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.scheme-detail-summary .value.highlight {
+    color: #f5576c;
+    font-size: 18px;
+}
+
+.scheme-products-detail {
+    margin-top: 15px;
+}
+
+.btn-close-detail {
+    margin-top: 15px;
+    padding: 8px 20px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-close-detail:hover {
+    background: #764ba2;
 }
 
