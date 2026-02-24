@@ -2361,12 +2361,17 @@ async function exportSchemeAsImage(solutionIndex) {
     
     // 检查是否已加载html2canvas库
     if (typeof html2canvas === 'undefined') {
-        alert('正在加载导出功能...');
         // 动态加载html2canvas库
         const script = document.createElement('script');
         script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
-        script.onload = () => exportSchemeAsImage(solutionIndex);
+        script.onload = () => {
+            // 加载完成后自动重试
+            exportSchemeAsImage(solutionIndex);
+        };
         document.head.appendChild(script);
+        
+        // 显示加载状态（非阻塞）
+        console.log('正在加载导出功能...');
         return;
     }
     
@@ -2414,11 +2419,13 @@ async function exportSchemeAsImage(solutionIndex) {
         
         // 渲染为canvas
         const canvas = await html2canvas(exportContainer, {
-            scale: 2,
+            scale: 3,
             backgroundColor: '#ffffff',
             logging: false,
             useCORS: true,
-            allowTaint: true
+            allowTaint: true,
+            windowWidth: 1920,
+            windowHeight: 1080
         });
         
         // 清理临时容器
@@ -2542,61 +2549,130 @@ function showSavedSchemeDetail(schemeId) {
         return;
     }
     
-    // 移除现有的详情显示
-    const existingDetail = document.querySelector('.saved-scheme-detail');
-    if (existingDetail) {
-        existingDetail.remove();
+    // 清空错误信息
+    document.getElementById('errorSection').style.display = 'none';
+    
+    // 获取或创建结果区域
+    const resultSection = document.getElementById('resultSection');
+    resultSection.style.display = 'block';
+    resultSection.innerHTML = '';
+    
+    // 创建方案卡片
+    const solutionDiv = document.createElement('div');
+    solutionDiv.className = 'solution-card';
+    
+    // 生成产品明细HTML
+    let productDetailsHTML = '';
+    if (scheme.allocations && scheme.allocations.length > 0) {
+        productDetailsHTML = scheme.allocations
+            .map(allocation => {
+                const typeLabel = allocation.type === 'deposit' ? '存款' : '理财';
+                return `
+                    <div class="product-detail-item">
+                        <div class="product-info">
+                            <span class="product-type">${typeLabel}</span>
+                            <span class="product-name">${allocation.name}</span>
+                        </div>
+                        <div class="product-metrics">
+                            <span class="product-ratio">${allocation.ratio.toFixed(1)}%</span>
+                            <span class="product-rate">${allocation.clientRate.toFixed(2)}%</span>
+                        </div>
+                    </div>
+                `;
+            })
+            .join('');
     }
     
-    // 生成详情HTML
-    let detailHTML = `
-        <div class="saved-scheme-detail">
-            <h4>${scheme.name} - 详细信息</h4>
-            <div class="scheme-detail-summary">
-                <div class="detail-item">
-                    <span class="label">客户总收益率：</span>
-                    <span class="value highlight">${scheme.clientRate.toFixed(2)}%</span>
-                </div>
-                <div class="detail-item">
-                    <span class="label">配置总金额：</span>
-                    <span class="value">¥${scheme.totalAmount.toLocaleString()}</span>
-                </div>
-            </div>
-            <div class="scheme-products-detail">
-                <h5>产品明细</h5>
-    `;
+    // 生成配置明细HTML
+    let allocationDetailsHTML = '';
+    if (scheme.allocations && scheme.allocations.length > 0) {
+        allocationDetailsHTML = scheme.allocations
+            .map(allocation => {
+                const itemAmount = scheme.amount * allocation.ratio / 100;
+                const typeLabel = allocation.type === 'deposit' ? '存款' : '理财';
+                return `
+                    <div class="allocation-item">
+                        <span class="name">${allocation.name}（${typeLabel}）</span>
+                        <div class="details">
+                            <div class="percentage">${allocation.ratio.toFixed(2)}%</div>
+                            <div class="amount">${itemAmount.toFixed(2)} 万元</div>
+                        </div>
+                    </div>
+                `;
+            })
+            .join('');
+    }
     
-    scheme.products.forEach(product => {
-        const amount = product.amount || 0;
-        const ratio = scheme.totalAmount > 0 ? (amount / scheme.totalAmount * 100) : 0;
-        const typeLabel = product.type === 'deposit' ? '存款' : '理财';
+    // 构建方案HTML
+    solutionDiv.innerHTML = `
+        <div class="solution-header">
+            <h2 class="solution-title">${scheme.name}</h2>
+            <div class="header-actions">
+                <span class="preference-badge balance">已保存方案</span>
+            </div>
+        </div>
         
-        detailHTML += `
-            <div class="product-detail-item">
-                <div class="product-info">
-                    <span class="product-type">${typeLabel}</span>
-                    <span class="product-name">${product.name}</span>
+        <div class="solution-content" id="solution_content_0">
+            <div class="solution-description">创建于: ${scheme.createdAt}</div>
+            
+            <div class="summary">
+                <div class="summary-item highlight">
+                    <span class="label">客户综合收益率：</span>
+                    <span class="value">${scheme.clientRate.toFixed(2)}%</span>
                 </div>
-                <div class="product-metrics">
-                    <span class="product-ratio">${ratio.toFixed(1)}%</span>
-                    <span class="product-rate">${product.rate}%</span>
-                    <span class="product-amount">¥${amount.toLocaleString()}</span>
+                <div class="summary-item">
+                    <span class="label">配置总金额：</span>
+                    <span class="value">${scheme.amount.toFixed(2)} 万元</span>
                 </div>
+                <div class="summary-item">
+                    <span class="label">使用产品数量：</span>
+                    <span class="value">${scheme.allocations.length} 个</span>
+                </div>
+                ${productDetailsHTML ? `
+                <div class="product-details-section">
+                    <div class="product-details-header">
+                        <span class="header-label">产品明细</span>
+                        <div class="header-metrics">
+                            <span class="header-ratio">比例</span>
+                            <span class="header-rate">收益率</span>
+                        </div>
+                    </div>
+                    ${productDetailsHTML}
+                </div>
+                ` : ''}
             </div>
-        `;
-    });
-    
-    detailHTML += `
+
+            <h3>配置明细</h3>
+            <div class="allocation-details-container">
+                ${allocationDetailsHTML}
             </div>
-            <button class="btn-close-detail" onclick="this.parentElement.remove()">关闭</button>
+            
+            <div class="action-buttons">
+                <button class="btn-secondary" onclick="exportSchemeAsImage(0)">📷 导出为图片</button>
+                <button class="btn-secondary" onclick="exportSchemeAsExcel(0)">📊 导出为Excel</button>
+            </div>
         </div>
     `;
     
-    // 插入到已保存方案列表之后
-    const savedSchemesList = document.querySelector('.saved-schemes-list');
-    if (savedSchemesList) {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = detailHTML;
-        savedSchemesList.parentElement.insertBefore(tempDiv.firstElementChild, savedSchemesList.nextSibling);
-    }
+    // 为导出功能存储方案数据
+    const exportData = {
+        clientRate: scheme.clientRate,
+        allocations: scheme.allocations.map(a => ({
+            product: {
+                name: a.name,
+                type: a.type,
+                clientRate: a.clientRate
+            },
+            ratio: a.ratio
+        })),
+        amount: scheme.amount,
+        allocationType: scheme.type,
+        isCustom: true
+    };
+    solutionDiv.setAttribute('data-solution', JSON.stringify(exportData));
+    
+    resultSection.appendChild(solutionDiv);
+    
+    // 滚动到结果区域
+    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
