@@ -1101,15 +1101,6 @@ function showMultipleResults(solutions, amount, allocationType) {
                 <span class="value">${solution.clientRate.toFixed(2)}%</span>
             </div>
             <div class="summary-item">
-                <span class="label">使用产品数量：</span>
-                <span class="value">${solution.allocations ? solution.allocations.length : (solution.allocation ? solution.allocation.filter(r => r > 0).length : 0)} 个</span>
-            </div>
-        ` : `
-            <div class="summary-item">
-                <span class="label">客户综合收益率：</span>
-                <span class="value">${solution.clientRate.toFixed(2)}%</span>
-            </div>
-            <div class="summary-item">
                 <span class="label">银行综合收益率：</span>
                 <span class="value">${solution.bankRate.toFixed(2)}%</span>
             </div>
