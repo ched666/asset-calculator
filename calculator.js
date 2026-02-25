@@ -1351,6 +1351,41 @@ function clearSuggestionRatio(index) {
     }
 }
 
+// 调整推荐比例（新增功能）
+function adjustSuggestionRatio(index, amount) {
+    const ratioInput = document.getElementById(`suggest_ratio_${index}`);
+    if (ratioInput) {
+        let currentValue = parseFloat(ratioInput.value) || 0;
+        let newValue = currentValue + amount;
+        
+        // 限制在 0-100 范围内
+        newValue = Math.max(0, Math.min(100, newValue));
+        
+        // 检查总比例不超过100%
+        const { fixed, suggested } = window.currentSuggestion;
+        let totalRatio = 0;
+        fixed.forEach(item => {
+            totalRatio += item.ratio;
+        });
+        suggested.forEach((item, idx) => {
+            if (idx !== index) {
+                const otherInput = document.getElementById(`suggest_ratio_${idx}`);
+                if (otherInput) {
+                    totalRatio += parseFloat(otherInput.value) || 0;
+                }
+            }
+        });
+        
+        // 如果增加后会超过100%，则调整为最大可用值
+        if (totalRatio + newValue > 100) {
+            newValue = 100 - totalRatio;
+        }
+        
+        ratioInput.value = newValue;
+        updateSuggestionRatio();
+    }
+}
+
 // 更新总比例和综合收益率
 function updateTotalRatio() {
     const type = document.querySelector('input[name="customType"]:checked').value;
@@ -1840,10 +1875,12 @@ function showInferenceSuggestion() {
             <div class="suggested-item recommended-item">
                 <span class="product-name">${item.name}</span>
                 <div class="editable-ratio-wrapper">
+                    <button class="btn-ratio-adjust btn-decrease" onclick="adjustSuggestionRatio(${index}, -5)" title="减少5%">-</button>
                     <input type="number" class="editable-ratio" id="suggest_ratio_${index}" 
                            value="${item.ratio.toFixed(0)}" min="0" max="100" step="5"
-                           oninput="updateSuggestionRatio()">
+                           readonly style="pointer-events: none;">
                     <span class="percent-symbol">%</span>
+                    <button class="btn-ratio-adjust btn-increase" onclick="adjustSuggestionRatio(${index}, 5)" title="增加5%">+</button>
                     <button class="btn-clear-ratio-small" onclick="clearSuggestionRatio(${index})" title="归零">归零</button>
                 </div>
             </div>

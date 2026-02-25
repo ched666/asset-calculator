@@ -916,6 +916,7 @@ input[type="number"]::-webkit-outer-spin-button {
     /* 产品明细移动端优化 - 纵向卡片布局 */
     .product-details-section {
         overflow: visible;
+        padding: 15px;
     }
     
     .product-details-header {
@@ -925,24 +926,26 @@ input[type="number"]::-webkit-outer-spin-button {
     .product-detail-item {
         flex-direction: column;
         align-items: stretch;
-        gap: 12px;
-        padding: 16px;
+        gap: 10px;
+        padding: 12px;
+        margin-bottom: 10px;
     }
     
     .product-detail-item .product-info {
         flex: none;
         width: 100%;
         justify-content: flex-start;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
+        gap: 6px;
     }
     
     .product-detail-item .product-type {
-        font-size: 11px;
-        padding: 2px 8px;
+        font-size: 10px;
+        padding: 2px 6px;
     }
     
     .product-detail-item .product-name {
-        font-size: 14px;
+        font-size: 13px;
         font-weight: 600;
     }
     
@@ -951,7 +954,7 @@ input[type="number"]::-webkit-outer-spin-button {
         width: 100%;
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
+        gap: 8px;
         justify-content: start;
     }
     
@@ -961,70 +964,78 @@ input[type="number"]::-webkit-outer-spin-button {
     .product-detail-item .product-profit {
         min-width: auto;
         text-align: left;
-        font-size: 13px;
+        font-size: 12px;
         display: flex;
         flex-direction: column;
         background: rgba(102, 126, 234, 0.05);
-        padding: 8px 10px;
-        border-radius: 6px;
+        padding: 6px 8px;
+        border-radius: 4px;
     }
     
     .product-detail-item .product-ratio::before {
         content: '比例';
-        font-size: 11px;
+        font-size: 10px;
         color: #667eea;
         font-weight: 600;
-        margin-bottom: 4px;
+        margin-bottom: 2px;
     }
     
     .product-detail-item .product-amount::before {
         content: '配置金额';
-        font-size: 11px;
+        font-size: 10px;
         color: #667eea;
         font-weight: 600;
-        margin-bottom: 4px;
+        margin-bottom: 2px;
     }
     
     .product-detail-item .product-rate::before {
         content: '收益率';
-        font-size: 11px;
+        font-size: 10px;
         color: #667eea;
         font-weight: 600;
-        margin-bottom: 4px;
+        margin-bottom: 2px;
     }
     
     .product-detail-item .product-profit::before {
         content: '收益';
-        font-size: 11px;
+        font-size: 10px;
         color: #667eea;
         font-weight: 600;
-        margin-bottom: 4px;
+        margin-bottom: 2px;
     }
     
     .product-detail-item .product-amount::after {
-        content: ' 万元';
-        font-size: 11px;
+        content: '万元';
+        font-size: 10px;
         color: #999;
+        margin-left: 2px;
     }
     
     .product-detail-item .product-profit::after {
-        content: ' 万元';
-        font-size: 11px;
+        content: '万元';
+        font-size: 10px;
         color: #999;
+        margin-left: 2px;
     }
     
     /* 汇总行手机端样式 */
     .product-detail-item.total-row {
-        margin-top: 15px;
+        margin-top: 10px;
+        padding: 12px;
+    }
+    
+    .product-detail-item.total-row .product-info {
+        margin-bottom: 8px;
     }
     
     .product-detail-item.total-row .product-type-summary {
-        font-size: 13px;
-        padding: 3px 10px;
+        font-size: 12px;
+        padding: 3px 8px;
     }
     
     .product-detail-item.total-row .product-metrics {
         grid-template-columns: 1fr 1fr 1fr;
+        gap: 6px;
     }
     
     .product-detail-item.total-row .product-ratio-empty {
@@ -1036,17 +1047,49 @@ input[type="number"]::-webkit-outer-spin-button {
     .product-detail-item.total-row .product-profit {
         background: rgba(255, 255, 255, 0.2);
         color: white;
+        font-size: 11px;
+        padding: 6px;
     }
     
     .product-detail-item.total-row .product-amount::before,
     .product-detail-item.total-row .product-rate::before,
     .product-detail-item.total-row .product-profit::before {
         color: rgba(255, 255, 255, 0.8);
+        font-size: 9px;
     }
     
     .product-detail-item.total-row .product-amount::after,
     .product-detail-item.total-row .product-profit::after {
         color: rgba(255, 255, 255, 0.7);
+        font-size: 9px;
+    }
+    
+    /* 智能推荐产品手机端优化 */
+    .editable-ratio-wrapper {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    
+    .btn-ratio-adjust {
+        width: 40px;
+        height: 40px;
+        font-size: 22px;
+    }
+    
+    .editable-ratio {
+        width: 70px;
+        font-size: 18px;
+        padding: 10px 8px;
+    }
+    
+    .percent-symbol {
+        font-size: 16px;
+    }
+    
+    .btn-clear-ratio-small {
+        width: 100%;
+        margin-top: 4px;
+        order: 10;
     }
 }
 
@@ -1534,19 +1577,54 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .editable-ratio {
-    width: 70px;
-    padding: 4px 8px;
+    width: 60px;
+    padding: 8px 6px;
     border: 2px solid #667eea;
     border-radius: 6px;
-    text-align: right;
-    font-size: 14px;
+    text-align: center;
+    font-size: 16px;
     font-weight: 600;
+    background: white;
 }
 
 .editable-ratio-wrapper {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
+}
+
+.btn-ratio-adjust {
+    width: 36px;
+    height: 36px;
+    border: 2px solid #667eea;
+    background: white;
+    color: #667eea;
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.btn-ratio-adjust:hover {
+    background: #667eea;
+    color: white;
+}
+
+.btn-ratio-adjust:active {
+    transform: scale(0.95);
+}
+
+.btn-decrease {
+    order: -1;
+}
+
+.btn-increase {
+    order: 2;
 }
 
 .percent-symbol {
