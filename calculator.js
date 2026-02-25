@@ -2359,14 +2359,19 @@ async function exportSchemeAsImage(solutionIndex) {
         return;
     }
     
-    // 检查是否已加载html2canvas库
-    if (typeof html2canvas === 'undefined') {
-        // 动态加载html2canvas库
+    // 检查是否已加载dom-to-image库
+    if (typeof domtoimage === 'undefined') {
+        // 动态加载dom-to-image库
         const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+        script.src = 'https://cdn.jsdelivr.net/npm/dom-to-image@2.6.0/dist/dom-to-image.min.js';
         script.onload = () => {
             // 加载完成后自动重试
+            console.log('dom-to-image加载完成，重新导出');
             exportSchemeAsImage(solutionIndex);
+        };
+        script.onerror = () => {
+            console.error('dom-to-image加载失败');
+            alert('导出库加载失败，请刷新页面重试');
         };
         document.head.appendChild(script);
         
@@ -2376,18 +2381,7 @@ async function exportSchemeAsImage(solutionIndex) {
     }
     
     try {
-        // 显示导出提示
-        console.log('正在生成图片...');
-        
-        // 直接在原始元素上渲染，不克隆
-        const solutionCard = document.querySelectorAll('.solution-card')[solutionIndex];
-        if (!solutionCard) {
-            alert('未找到方案数据');
-            return;
-        }
-        
-        // 保存原始样式，以便稍后恢复
-        const originalStyles = new Map();
+        console.log('开始导出图片...');
         
         // 临时隐藏操作按钮和折叠按钮
         const actionButtons = solutionCard.querySelector('.action-buttons');
@@ -2399,179 +2393,54 @@ async function exportSchemeAsImage(solutionIndex) {
         
         // 确保内容可见
         const contentDiv = solutionCard.querySelector('.solution-content');
+        const originalContentDisplay = contentDiv ? contentDiv.style.display : '';
         if (contentDiv) {
             contentDiv.style.display = 'block';
         }
         
-        // 手动强化关键元素样式（使用纯色而非渐变，确保兼容性）
+        // 添加水印
+        const watermark = document.createElement('div');
+        watermark.className = 'export-watermark';
+        watermark.style.cssText = 'text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 12px;';
+        watermark.innerHTML = `
+            <div>资产配置计算器</div>
+            <div>生成时间：${new Date().toLocaleString()}</div>
+        `;
+        solutionCard.appendChild(watermark);
         
-        // 1. 高亮项 - 使用单一深色代替渐变
-        const highlightItems = solutionCard.querySelectorAll('.summary-item.highlight');
-        highlightItems.forEach(item => {
-            originalStyles.set(item, item.getAttribute('style') || '');
-            item.style.cssText = `
-                background: #667eea !important;
-                color: white !important;
-                padding: 12px 20px !important;
-                border-radius: 8px !important;
-                margin-bottom: 10px !important;
-            `;
-            // 确保子元素也是白色
-            const children = item.querySelectorAll('.label, .value');
-            children.forEach(child => {
-                originalStyles.set(child, child.getAttribute('style') || '');
-                child.style.color = 'white !important';
-            });
-        });
-        
-        // 2. 产品明细区域 - 使用浅灰色
-        const productDetailsSection = solutionCard.querySelector('.product-details-section');
-        if (productDetailsSection) {
-            originalStyles.set(productDetailsSection, productDetailsSection.getAttribute('style') || '');
-            productDetailsSection.style.cssText = `
-                background: #e8ecf1 !important;
-                padding: 20px !important;
-                border-radius: 12px !important;
-                margin-top: 20px !important;
-                border: 1px solid #d0d7de !important;
-            `;
-        }
-        
-        // 3. 产品明细表头
-        const productDetailsHeader = solutionCard.querySelector('.product-details-header');
-        if (productDetailsHeader) {
-            originalStyles.set(productDetailsHeader, productDetailsHeader.getAttribute('style') || '');
-            productDetailsHeader.style.cssText = `
-                background: #d4dce6 !important;
-                padding: 10px 16px !important;
-                border-radius: 8px !important;
-                margin-bottom: 15px !important;
-            `;
-        }
-        
-        // 4. 产品类型标签
-        const productTypes = solutionCard.querySelectorAll('.product-type');
-        productTypes.forEach(type => {
-            originalStyles.set(type, type.getAttribute('style') || '');
-            type.style.cssText = `
-                background: #667eea !important;
-                color: white !important;
-                padding: 3px 10px !important;
-                border-radius: 12px !important;
-                font-size: 12px !important;
-                display: inline-block !important;
-            `;
-        });
-        
-        // 5. 产品比例
-        const productRatios = solutionCard.querySelectorAll('.product-ratio');
-        productRatios.forEach(ratio => {
-            originalStyles.set(ratio, ratio.getAttribute('style') || '');
-            ratio.style.cssText = `
-                background: #e0e7ff !important;
-                color: #2c3e50 !important;
-                padding: 4px 10px !important;
-                border-radius: 4px !important;
-                font-weight: 600 !important;
-            `;
-        });
-        
-        // 6. 产品收益率
-        const productRates = solutionCard.querySelectorAll('.product-rate');
-        productRates.forEach(rate => {
-            originalStyles.set(rate, rate.getAttribute('style') || '');
-            rate.style.cssText = `
-                color: #f5576c !important;
-                font-weight: 600 !important;
-            `;
-        });
-        
-        // 7. 倾向标签
-        const preferenceBadges = solutionCard.querySelectorAll('.preference-badge');
-        preferenceBadges.forEach(badge => {
-            originalStyles.set(badge, badge.getAttribute('style') || '');
-            let bgColor = '#38f9d7'; // balance默认色
-            if (badge.classList.contains('yield')) {
-                bgColor = '#f5576c';
-            } else if (badge.classList.contains('liquidity')) {
-                bgColor = '#00f2fe';
-            }
-            badge.style.cssText = `
-                background: ${bgColor} !important;
-                color: white !important;
-                padding: 6px 16px !important;
-                border-radius: 20px !important;
-            `;
-        });
-        
-        // 8. 方案描述
-        const solutionDescription = solutionCard.querySelector('.solution-description');
-        if (solutionDescription) {
-            originalStyles.set(solutionDescription, solutionDescription.getAttribute('style') || '');
-            solutionDescription.style.cssText = `
-                background: #f8f9ff !important;
-                color: #555 !important;
-                padding: 12px 16px !important;
-                border-radius: 8px !important;
-                border-left: 4px solid #667eea !important;
-                margin: 15px 0 !important;
-            `;
-        }
-        
-        // 9. 产品明细项
-        const productDetailItems = solutionCard.querySelectorAll('.product-detail-item');
-        productDetailItems.forEach(item => {
-            originalStyles.set(item, item.getAttribute('style') || '');
-            item.style.cssText = `
-                background: white !important;
-                padding: 12px 16px !important;
-                border-radius: 8px !important;
-                margin-bottom: 8px !important;
-            `;
-        });
-        
-        // 等待样式应用
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // 渲染为canvas
-        console.log('开始渲染canvas...');
-        const canvas = await html2canvas(solutionCard, {
-            scale: 2,
-            backgroundColor: '#ffffff',
-            logging: true,
-            useCORS: true,
-            allowTaint: true,
+        // 使用dom-to-image导出（支持CSS更好）
+        console.log('使用dom-to-image渲染...');
+        const dataUrl = await domtoimage.toPng(solutionCard, {
             width: solutionCard.offsetWidth,
-            height: solutionCard.offsetHeight
+            height: solutionCard.offsetHeight,
+            style: {
+                margin: '0'
+            },
+            quality: 1.0,
+            cacheBust: true
         });
         
-        console.log('Canvas生成成功:', canvas.width, 'x', canvas.height);
+        console.log('图片生成成功');
         
-        // 恢复所有原始样式
-        originalStyles.forEach((originalStyle, element) => {
-            if (originalStyle) {
-                element.setAttribute('style', originalStyle);
-            } else {
-                element.removeAttribute('style');
-            }
-        });
+        // 恢复原始状态
         if (actionButtons) actionButtons.style.display = originalActionDisplay;
         if (collapseBtn) collapseBtn.style.display = originalCollapseDisplay;
+        if (contentDiv) contentDiv.style.display = originalContentDisplay;
+        watermark.remove();
         
         // 下载图片
-        canvas.toBlob((blob) => {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `资产配置方案_${new Date().toLocaleDateString()}.png`;
-            a.click();
-            URL.revokeObjectURL(url);
-            console.log('图片下载完成');
-        });
+        const link = document.createElement('a');
+        link.download = `资产配置方案_${new Date().toLocaleDateString()}.png`;
+        link.href = dataUrl;
+        link.click();
+        
+        console.log('图片下载完成');
         
     } catch (error) {
         console.error('导出失败：', error);
         alert('导出失败，请重试');
+    }
+}
     }
 }
 
