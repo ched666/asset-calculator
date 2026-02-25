@@ -2355,6 +2355,37 @@ function deleteScheme(schemeId) {
     loadSavedSchemes();
 }
 
+// 调整数字输入框的值（通用函数）
+function adjustNumberInput(inputId, amount) {
+    const input = document.getElementById(inputId);
+    if (input) {
+        let currentValue = parseFloat(input.value) || 0;
+        let newValue = currentValue + amount;
+        
+        // 获取输入框的限制
+        const min = parseFloat(input.min) !== undefined && input.min !== '' ? parseFloat(input.min) : -Infinity;
+        const max = parseFloat(input.max) !== undefined && input.max !== '' ? parseFloat(input.max) : Infinity;
+        
+        // 限制在范围内
+        newValue = Math.max(min, Math.min(max, newValue));
+        
+        // 处理小数精度
+        const step = parseFloat(input.step) || 1;
+        if (step < 1) {
+            const decimalPlaces = (step.toString().split('.')[1] || '').length;
+            newValue = parseFloat(newValue.toFixed(decimalPlaces));
+        } else {
+            newValue = Math.round(newValue);
+        }
+        
+        input.value = newValue;
+        
+        // 触发 input 事件（如果有绑定的处理函数）
+        const event = new Event('input', { bubbles: true });
+        input.dispatchEvent(event);
+    }
+}
+
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', async function() {
     // 首次访问时加载默认配置

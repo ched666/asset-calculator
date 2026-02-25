@@ -90,7 +90,7 @@ h3 {
     transition: border-color 0.3s;
 }
 
-/* 强制在移动端显示number input的上下箭头 */
+/* 隐藏 number input 的默认箭头 */
 input[type="number"] {
     -webkit-appearance: textfield;
     -moz-appearance: textfield;
@@ -99,28 +99,49 @@ input[type="number"] {
 
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
-    -webkit-appearance: inner-spin-button !important;
-    opacity: 1 !important;
-    position: relative;
-    cursor: pointer;
-    display: inline-block !important;
-    height: auto;
-    width: auto;
+    -webkit-appearance: none;
     margin: 0;
+    display: none;
 }
 
-/* 移动端特别优化 - 增大上下箭头点击区域 */
-@media (max-width: 768px) {
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-        height: 40px;
-        width: 30px;
-        margin-left: 10px;
-    }
-    
-    input[type="number"] {
-        padding-right: 45px;
-    }
+/* 通用的数字输入框包装器 */
+.number-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.number-input-wrapper input[type="number"] {
+    flex: 1;
+    min-width: 0;
+}
+
+/* 通用的加减按钮 */
+.btn-number-adjust {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #667eea;
+    background: white;
+    color: #667eea;
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.btn-number-adjust:hover {
+    background: #667eea;
+    color: white;
+}
+
+.btn-number-adjust:active {
+    transform: scale(0.95);
 }
 
 .form-group input:focus,
@@ -966,56 +987,58 @@ input[type="number"]::-webkit-outer-spin-button {
         text-align: left;
         font-size: 12px;
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: baseline;
         background: rgba(102, 126, 234, 0.05);
         padding: 6px 8px;
         border-radius: 4px;
     }
     
-    .product-detail-item .product-ratio::before {
-        content: '比例';
+    .product-detail-item .product-ratio::before,
+    .product-detail-item .product-amount::before,
+    .product-detail-item .product-rate::before,
+    .product-detail-item .product-profit::before {
+        content: attr(data-label);
         font-size: 10px;
         color: #667eea;
         font-weight: 600;
+        width: 100%;
         margin-bottom: 2px;
+    }
+    
+    .product-detail-item .product-ratio::before {
+        content: '比例';
     }
     
     .product-detail-item .product-amount::before {
         content: '配置金额';
-        font-size: 10px;
-        color: #667eea;
-        font-weight: 600;
-        margin-bottom: 2px;
     }
     
     .product-detail-item .product-rate::before {
         content: '收益率';
-        font-size: 10px;
-        color: #667eea;
-        font-weight: 600;
-        margin-bottom: 2px;
     }
     
     .product-detail-item .product-profit::before {
         content: '收益';
-        font-size: 10px;
-        color: #667eea;
-        font-weight: 600;
-        margin-bottom: 2px;
     }
     
     .product-detail-item .product-amount::after {
         content: '万元';
         font-size: 10px;
         color: #999;
-        margin-left: 2px;
+        margin-left: 3px;
     }
     
     .product-detail-item .product-profit::after {
         content: '万元';
         font-size: 10px;
         color: #999;
-        margin-left: 2px;
+        margin-left: 3px;
+    }
+    
+    .product-detail-item .product-name {
+        white-space: nowrap;
     }
     
     /* 汇总行手机端样式 */
@@ -1031,6 +1054,7 @@ input[type="number"]::-webkit-outer-spin-button {
     .product-detail-item.total-row .product-type-summary {
         font-size: 12px;
         padding: 3px 8px;
+        white-space: nowrap;
     }
     
     .product-detail-item.total-row .product-metrics {
@@ -1062,6 +1086,18 @@ input[type="number"]::-webkit-outer-spin-button {
     .product-detail-item.total-row .product-profit::after {
         color: rgba(255, 255, 255, 0.7);
         font-size: 9px;
+        margin-left: 3px;
+    }
+    
+    /* 通用加减按钮手机端优化 */
+    .number-input-wrapper {
+        gap: 8px;
+    }
+    
+    .btn-number-adjust {
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
     }
     
     /* 智能推荐产品手机端优化 */
