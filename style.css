@@ -109,12 +109,17 @@ input[type="number"]::-webkit-outer-spin-button {
     margin: 0;
 }
 
-/* 移动端特别优化 */
+/* 移动端特别优化 - 增大上下箭头点击区域 */
 @media (max-width: 768px) {
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
-        height: 20px;
-        width: 20px;
+        height: 40px;
+        width: 30px;
+        margin-left: 10px;
+    }
+    
+    input[type="number"] {
+        padding-right: 45px;
     }
 }
 
@@ -791,8 +796,13 @@ input[type="number"]::-webkit-outer-spin-button {
 .product-detail-item .product-info {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex: 1;
+    min-width: 0;
+}
+
+.product-detail-item .product-name {
+    flex-shrink: 0;
 }
 
 .product-detail-item .product-ratio {
@@ -910,15 +920,58 @@ input[type="number"]::-webkit-outer-spin-button {
         width: 100%;
     }
     
+    /* 产品明细移动端优化 - 使用横向滚动 */
+    .product-details-section {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
     .product-detail-item {
-        flex-direction: column;
-        align-items: flex-start;
+        min-width: 600px;
+        flex-direction: row;
+        align-items: center;
         gap: 10px;
     }
     
+    .product-detail-item .product-info {
+        flex: 0 0 140px;
+        min-width: 140px;
+    }
+    
     .product-detail-item .product-metrics {
-        width: 100%;
-        justify-content: space-between;
+        flex: 1;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    
+    .product-detail-item .product-ratio,
+    .product-detail-item .product-amount,
+    .product-detail-item .product-rate,
+    .product-detail-item .product-profit {
+        min-width: 70px;
+        font-size: 13px;
+    }
+    
+    .product-details-header {
+        min-width: 600px;
+    }
+    
+    .product-details-section .header-label {
+        flex: 0 0 140px;
+    }
+    
+    .product-details-section .header-metrics {
+        flex: 1;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+    
+    .product-details-section .header-ratio,
+    .product-details-section .header-amount,
+    .product-details-section .header-rate,
+    .product-details-section .header-profit {
+        min-width: 70px;
+        font-size: 12px;
     }
 }
 
