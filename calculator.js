@@ -2379,142 +2379,150 @@ async function exportSchemeAsImage(solutionIndex) {
         // 显示导出提示
         console.log('正在生成图片...');
         
-        // 创建一个临时容器用于渲染
-        const exportContainer = document.createElement('div');
-        exportContainer.style.cssText = `
-            position: absolute;
-            left: -99999px;
-            top: 0;
-            width: 850px;
-            padding: 20px;
-            background: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-        `;
-        exportContainer.id = 'export-temp-container';
+        // 直接在原始元素上渲染，不克隆
+        const solutionCard = document.querySelectorAll('.solution-card')[solutionIndex];
+        if (!solutionCard) {
+            alert('未找到方案数据');
+            return;
+        }
         
-        // 克隆方案卡片
-        const clone = solutionCard.cloneNode(true);
+        // 保存原始样式，以便稍后恢复
+        const originalStyles = new Map();
         
-        // 移除不需要的元素
-        const actionButtons = clone.querySelector('.action-buttons');
-        if (actionButtons) actionButtons.remove();
+        // 临时隐藏操作按钮和折叠按钮
+        const actionButtons = solutionCard.querySelector('.action-buttons');
+        const collapseBtn = solutionCard.querySelector('.btn-collapse');
+        const originalActionDisplay = actionButtons ? actionButtons.style.display : '';
+        const originalCollapseDisplay = collapseBtn ? collapseBtn.style.display : '';
+        if (actionButtons) actionButtons.style.display = 'none';
+        if (collapseBtn) collapseBtn.style.display = 'none';
         
-        const collapseBtn = clone.querySelector('.btn-collapse');
-        if (collapseBtn) collapseBtn.remove();
-        
-        // 确保内容区域完全展开
-        const contentDiv = clone.querySelector('.solution-content');
+        // 确保内容可见
+        const contentDiv = solutionCard.querySelector('.solution-content');
         if (contentDiv) {
             contentDiv.style.display = 'block';
         }
         
-        // 手动设置关键元素的样式，确保html2canvas能正确渲染
+        // 手动强化关键元素样式（使用纯色而非渐变，确保兼容性）
         
-        // 1. 设置highlight项的渐变背景
-        const highlightItems = clone.querySelectorAll('.summary-item.highlight');
+        // 1. 高亮项 - 使用单一深色代替渐变
+        const highlightItems = solutionCard.querySelectorAll('.summary-item.highlight');
         highlightItems.forEach(item => {
-            item.style.cssText += `
-                background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%) !important;
+            originalStyles.set(item, item.getAttribute('style') || '');
+            item.style.cssText = `
+                background: #667eea !important;
                 color: white !important;
                 padding: 12px 20px !important;
                 border-radius: 8px !important;
                 margin-bottom: 10px !important;
             `;
-            // 确保内部文字也是白色
-            const labels = item.querySelectorAll('.label, .value');
-            labels.forEach(el => {
-                el.style.color = 'white !important';
+            // 确保子元素也是白色
+            const children = item.querySelectorAll('.label, .value');
+            children.forEach(child => {
+                originalStyles.set(child, child.getAttribute('style') || '');
+                child.style.color = 'white !important';
             });
         });
         
-        // 2. 设置产品明细区域的渐变背景
-        const productDetailsSection = clone.querySelector('.product-details-section');
+        // 2. 产品明细区域 - 使用浅灰色
+        const productDetailsSection = solutionCard.querySelector('.product-details-section');
         if (productDetailsSection) {
-            productDetailsSection.style.cssText += `
-                background: linear-gradient(135deg, rgb(245, 247, 250) 0%, rgb(195, 207, 226) 100%) !important;
+            originalStyles.set(productDetailsSection, productDetailsSection.getAttribute('style') || '');
+            productDetailsSection.style.cssText = `
+                background: #e8ecf1 !important;
                 padding: 20px !important;
                 border-radius: 12px !important;
                 margin-top: 20px !important;
+                border: 1px solid #d0d7de !important;
             `;
         }
         
-        // 3. 设置产品明细表头背景
-        const productDetailsHeader = clone.querySelector('.product-details-header');
+        // 3. 产品明细表头
+        const productDetailsHeader = solutionCard.querySelector('.product-details-header');
         if (productDetailsHeader) {
-            productDetailsHeader.style.cssText += `
-                background: rgba(102, 126, 234, 0.08) !important;
+            originalStyles.set(productDetailsHeader, productDetailsHeader.getAttribute('style') || '');
+            productDetailsHeader.style.cssText = `
+                background: #d4dce6 !important;
                 padding: 10px 16px !important;
                 border-radius: 8px !important;
                 margin-bottom: 15px !important;
             `;
         }
         
-        // 4. 设置产品类型标签
-        const productTypes = clone.querySelectorAll('.product-type');
+        // 4. 产品类型标签
+        const productTypes = solutionCard.querySelectorAll('.product-type');
         productTypes.forEach(type => {
-            type.style.cssText += `
-                background: rgb(102, 126, 234) !important;
+            originalStyles.set(type, type.getAttribute('style') || '');
+            type.style.cssText = `
+                background: #667eea !important;
                 color: white !important;
                 padding: 3px 10px !important;
                 border-radius: 12px !important;
                 font-size: 12px !important;
+                display: inline-block !important;
             `;
         });
         
-        // 5. 设置产品比例背景
-        const productRatios = clone.querySelectorAll('.product-ratio');
+        // 5. 产品比例
+        const productRatios = solutionCard.querySelectorAll('.product-ratio');
         productRatios.forEach(ratio => {
-            ratio.style.cssText += `
-                background: rgba(102, 126, 234, 0.1) !important;
-                color: rgb(44, 62, 80) !important;
+            originalStyles.set(ratio, ratio.getAttribute('style') || '');
+            ratio.style.cssText = `
+                background: #e0e7ff !important;
+                color: #2c3e50 !important;
                 padding: 4px 10px !important;
                 border-radius: 4px !important;
                 font-weight: 600 !important;
             `;
         });
         
-        // 6. 设置产品收益率颜色
-        const productRates = clone.querySelectorAll('.product-rate');
+        // 6. 产品收益率
+        const productRates = solutionCard.querySelectorAll('.product-rate');
         productRates.forEach(rate => {
-            rate.style.cssText += `
-                color: rgb(245, 87, 108) !important;
+            originalStyles.set(rate, rate.getAttribute('style') || '');
+            rate.style.cssText = `
+                color: #f5576c !important;
                 font-weight: 600 !important;
             `;
         });
         
-        // 7. 设置倾向标签背景
-        const preferenceBadges = clone.querySelectorAll('.preference-badge');
+        // 7. 倾向标签
+        const preferenceBadges = solutionCard.querySelectorAll('.preference-badge');
         preferenceBadges.forEach(badge => {
+            originalStyles.set(badge, badge.getAttribute('style') || '');
+            let bgColor = '#38f9d7'; // balance默认色
             if (badge.classList.contains('yield')) {
-                badge.style.background = 'linear-gradient(135deg, rgb(240, 147, 251) 0%, rgb(245, 87, 108) 100%) !important';
+                bgColor = '#f5576c';
             } else if (badge.classList.contains('liquidity')) {
-                badge.style.background = 'linear-gradient(135deg, rgb(79, 172, 254) 0%, rgb(0, 242, 254) 100%) !important';
-            } else if (badge.classList.contains('balance')) {
-                badge.style.background = 'linear-gradient(135deg, rgb(67, 233, 123) 0%, rgb(56, 249, 215) 100%) !important';
+                bgColor = '#00f2fe';
             }
-            badge.style.cssText += `
+            badge.style.cssText = `
+                background: ${bgColor} !important;
                 color: white !important;
                 padding: 6px 16px !important;
                 border-radius: 20px !important;
             `;
         });
         
-        // 8. 设置方案描述背景
-        const solutionDescription = clone.querySelector('.solution-description');
+        // 8. 方案描述
+        const solutionDescription = solutionCard.querySelector('.solution-description');
         if (solutionDescription) {
-            solutionDescription.style.cssText += `
-                background: rgb(248, 249, 255) !important;
-                color: rgb(85, 85, 85) !important;
+            originalStyles.set(solutionDescription, solutionDescription.getAttribute('style') || '');
+            solutionDescription.style.cssText = `
+                background: #f8f9ff !important;
+                color: #555 !important;
                 padding: 12px 16px !important;
                 border-radius: 8px !important;
-                border-left: 4px solid rgb(102, 126, 234) !important;
+                border-left: 4px solid #667eea !important;
+                margin: 15px 0 !important;
             `;
         }
         
-        // 9. 设置产品明细项背景
-        const productDetailItems = clone.querySelectorAll('.product-detail-item');
+        // 9. 产品明细项
+        const productDetailItems = solutionCard.querySelectorAll('.product-detail-item');
         productDetailItems.forEach(item => {
-            item.style.cssText += `
+            originalStyles.set(item, item.getAttribute('style') || '');
+            item.style.cssText = `
                 background: white !important;
                 padding: 12px 16px !important;
                 border-radius: 8px !important;
@@ -2522,32 +2530,33 @@ async function exportSchemeAsImage(solutionIndex) {
             `;
         });
         
-        // 添加水印
-        const watermark = document.createElement('div');
-        watermark.style.cssText = 'text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 12px;';
-        watermark.innerHTML = `
-            <div>资产配置计算器</div>
-            <div>生成时间：${new Date().toLocaleString()}</div>
-        `;
-        clone.appendChild(watermark);
-        
-        exportContainer.appendChild(clone);
-        document.body.appendChild(exportContainer);
-        
-        // 等待浏览器渲染完成
-        await new Promise(resolve => setTimeout(resolve, 500));
+        // 等待样式应用
+        await new Promise(resolve => setTimeout(resolve, 100));
         
         // 渲染为canvas
-        const canvas = await html2canvas(exportContainer, {
+        console.log('开始渲染canvas...');
+        const canvas = await html2canvas(solutionCard, {
             scale: 2,
             backgroundColor: '#ffffff',
-            logging: false,
+            logging: true,
             useCORS: true,
-            allowTaint: true
+            allowTaint: true,
+            width: solutionCard.offsetWidth,
+            height: solutionCard.offsetHeight
         });
         
-        // 清理临时容器
-        document.body.removeChild(exportContainer);
+        console.log('Canvas生成成功:', canvas.width, 'x', canvas.height);
+        
+        // 恢复所有原始样式
+        originalStyles.forEach((originalStyle, element) => {
+            if (originalStyle) {
+                element.setAttribute('style', originalStyle);
+            } else {
+                element.removeAttribute('style');
+            }
+        });
+        if (actionButtons) actionButtons.style.display = originalActionDisplay;
+        if (collapseBtn) collapseBtn.style.display = originalCollapseDisplay;
         
         // 下载图片
         canvas.toBlob((blob) => {
@@ -2557,6 +2566,7 @@ async function exportSchemeAsImage(solutionIndex) {
             a.download = `资产配置方案_${new Date().toLocaleDateString()}.png`;
             a.click();
             URL.revokeObjectURL(url);
+            console.log('图片下载完成');
         });
         
     } catch (error) {

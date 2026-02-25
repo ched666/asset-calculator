@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试导出功能</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div style="padding: 20px;">
+        <h1>测试图片导出功能</h1>
+        <button onclick="testExport()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+            测试导出图片
+        </button>
+        
+        <div id="resultSection" style="margin-top: 20px;">
+            <!-- 模拟一个推荐方案 -->
+            <div class="solution-card">
+                <div class="solution-header">
+                    <h2 class="solution-title">推荐方案</h2>
+                    <div class="header-actions">
+                        <span class="preference-badge balance">已保存方案</span>
+                    </div>
+                </div>
+                
+                <div class="solution-content">
+                    <div class="solution-description">创建于: 2026/2/25 18:20:36</div>
+                    
+                    <div class="summary">
+                        <div class="summary-item highlight">
+                            <span class="label">客户综合收益率：</span>
+                            <span class="value">1.04%</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="label">配置总金额：</span>
+                            <span class="value">1000.00 万元</span>
+                        </div>
+                        
+                        <div class="product-details-section">
+                            <div class="product-details-header">
+                                <span class="header-label">产品明细</span>
+                                <div class="header-metrics">
+                                    <span class="header-ratio">比例</span>
+                                    <span class="header-rate">收益率</span>
+                                </div>
+                            </div>
+                            
+                            <div class="product-detail-item">
+                                <div class="product-info">
+                                    <span class="product-type">存款</span>
+                                    <span class="product-name">活期存款</span>
+                                </div>
+                                <div class="product-metrics">
+                                    <span class="product-ratio">15.0%</span>
+                                    <span class="product-rate">0.05%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="product-detail-item">
+                                <div class="product-info">
+                                    <span class="product-type">存款</span>
+                                    <span class="product-name">7天通知</span>
+                                </div>
+                                <div class="product-metrics">
+                                    <span class="product-ratio">25.0%</span>
+                                    <span class="product-rate">0.75%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h3>配置明细</h3>
+                    <div class="allocation-details-container">
+                        <div class="allocation-item">
+                            <span class="name">活期存款（存款）</span>
+                            <div class="details">
+                                <div class="percentage">15.00%</div>
+                                <div class="amount">150.00 万元</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script>
+        async function testExport() {
+            console.log('开始测试导出...');
+            const solutionCard = document.querySelector('.solution-card');
+            
+            if (!solutionCard) {
+                alert('未找到方案卡片');
+                return;
+            }
+            
+            try {
+                console.log('步骤1: 创建临时容器');
+                const exportContainer = document.createElement('div');
+                exportContainer.style.cssText = `
+                    position: fixed;
+                    left: 0;
+                    top: 0;
+                    width: 850px;
+                    padding: 20px;
+                    background: #ffffff;
+                    z-index: 99999;
+                `;
+                
+                console.log('步骤2: 克隆元素');
+                const clone = solutionCard.cloneNode(true);
+                
+                console.log('步骤3: 设置样式');
+                // 手动设置所有关键样式
+                const highlightItems = clone.querySelectorAll('.summary-item.highlight');
+                console.log('找到highlight项:', highlightItems.length);
+                highlightItems.forEach(item => {
+                    item.style.background = 'rgb(102, 126, 234)';
+                    item.style.color = 'white';
+                    item.style.padding = '12px 20px';
+                    item.style.borderRadius = '8px';
+                    const labels = item.querySelectorAll('.label, .value');
+                    labels.forEach(el => el.style.color = 'white');
+                });
+                
+                const productDetailsSection = clone.querySelector('.product-details-section');
+                if (productDetailsSection) {
+                    console.log('设置产品明细区域背景');
+                    productDetailsSection.style.background = 'rgb(195, 207, 226)';
+                    productDetailsSection.style.padding = '20px';
+                    productDetailsSection.style.borderRadius = '12px';
+                }
+                
+                const productTypes = clone.querySelectorAll('.product-type');
+                console.log('找到产品类型:', productTypes.length);
+                productTypes.forEach(type => {
+                    type.style.background = 'rgb(102, 126, 234)';
+                    type.style.color = 'white';
+                    type.style.padding = '3px 10px';
+                    type.style.borderRadius = '12px';
+                });
+                
+                exportContainer.appendChild(clone);
+                document.body.appendChild(exportContainer);
+                
+                console.log('步骤4: 等待500ms渲染');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                console.log('步骤5: 调用html2canvas');
+                const canvas = await html2canvas(exportContainer, {
+                    scale: 2,
+                    backgroundColor: '#ffffff',
+                    logging: true,
+                    useCORS: true,
+                    allowTaint: true
+                });
+                
+                console.log('步骤6: 生成图片, canvas大小:', canvas.width, 'x', canvas.height);
+                
+                // 移除临时容器
+                document.body.removeChild(exportContainer);
+                
+                // 下载图片
+                canvas.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `测试导出_${Date.now()}.png`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    console.log('导出完成');
+                });
+                
+            } catch (error) {
+                console.error('导出失败：', error);
+                alert('导出失败: ' + error.message);
+            }
+        }
+    </script>
+</body>
+</html>
