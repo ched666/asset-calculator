@@ -968,7 +968,11 @@ input[type="number"]::-webkit-outer-spin-button {
     }
     
     .product-details-header {
-        display: none;
+        display: none !important;
+    }
+    
+    .product-details-header * {
+        display: none !important;
     }
     
     .product-detail-item {
@@ -1107,6 +1111,9 @@ input[type="number"]::-webkit-outer-spin-button {
     .product-detail-item.total-row .product-profit::before {
         color: rgba(255, 255, 255, 0.8);
         font-size: 9px;
+        width: auto;
+        margin-right: 5px;
+        margin-bottom: 0;
     }
     
     .product-detail-item.total-row .product-amount::after,

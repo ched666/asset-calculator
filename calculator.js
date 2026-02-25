@@ -1875,7 +1875,7 @@ function showInferenceSuggestion() {
     // 显示建议（不自动填充）
     let suggestionHTML = `
         <div class="inference-suggestion">
-            <h4>💡 智能推演建议</h4>
+            <h4>💡 智能推荐</h4>
             <p style="margin-bottom: 15px;">已配置：${fixedRatio.toFixed(0)}%，剩余：${remainingRatio.toFixed(0)}%</p>
             
             <div class="suggestion-products-container">
