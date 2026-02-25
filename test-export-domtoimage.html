@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试dom-to-image导出功能</title>
+    <style>
+        body {
+            padding: 40px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .solution-card {
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e0e0;
+        }
+        
+        .summary-item.highlight {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .product-details-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+        
+        .product-details-header {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 10px 16px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .product-detail-item {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .product-type {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .product-ratio {
+            background: #e0e7ff;
+            color: #2c3e50;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .product-rate {
+            color: #f5576c;
+            font-weight: 600;
+        }
+        
+        .btn-test {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        
+        .btn-test:hover {
+            opacity: 0.9;
+        }
+        
+        .log {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>dom-to-image 导出测试</h1>
+        <p>这个测试页面使用 <strong>dom-to-image</strong> 库（比html2canvas更好的CSS支持）</p>
+        
+        <div class="solution-card" id="testCard">
+            <h3>推荐方案1</h3>
+            
+            <div class="summary-item highlight">
+                <span class="label">配置总金额：</span>
+                <span class="value">1000.00 万元</span>
+            </div>
+            
+            <div class="summary-item highlight">
+                <span class="label">使用产品数量：</span>
+                <span class="value">5 个</span>
+            </div>
+            
+            <div class="product-details-section">
+                <div class="product-details-header">产品明细</div>
+                
+                <div class="product-detail-item">
+                    <div>
+                        <span class="product-type">存款</span>
+                        <span>活期存款</span>
+                    </div>
+                    <div>
+                        <span class="product-ratio">15.0%</span>
+                        <span class="product-rate">0.05%</span>
+                    </div>
+                </div>
+                
+                <div class="product-detail-item">
+                    <div>
+                        <span class="product-type">存款</span>
+                        <span>7天通知</span>
+                    </div>
+                    <div>
+                        <span class="product-ratio">5.0%</span>
+                        <span class="product-rate">0.75%</span>
+                    </div>
+                </div>
+                
+                <div class="product-detail-item">
+                    <div>
+                        <span class="product-type">存款</span>
+                        <span>3个月</span>
+                    </div>
+                    <div>
+                        <span class="product-ratio">10.0%</span>
+                        <span class="product-rate">1.00%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn-test" onclick="testExport()">测试导出（dom-to-image）</button>
+        <button class="btn-test" onclick="clearLog()">清除日志</button>
+        
+        <div class="log" id="log">
+            <div>准备测试...</div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/dom-to-image@2.6.0/dist/dom-to-image.min.js"></script>
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const time = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<div>[${time}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '<div>日志已清除</div>';
+        }
+        
+        async function testExport() {
+            log('=== 开始测试dom-to-image导出 ===');
+            const card = document.getElementById('testCard');
+            
+            try {
+                log('检查dom-to-image库...');
+                if (typeof domtoimage === 'undefined') {
+                    log('❌ dom-to-image库未加载');
+                    return;
+                }
+                log('✓ dom-to-image库已加载');
+                
+                log('开始渲染，尺寸: ' + card.offsetWidth + 'x' + card.offsetHeight);
+                
+                const startTime = Date.now();
+                const dataUrl = await domtoimage.toPng(card, {
+                    width: card.offsetWidth,
+                    height: card.offsetHeight,
+                    style: {
+                        margin: '0'
+                    },
+                    quality: 1.0,
+                    cacheBust: true
+                });
+                
+                const endTime = Date.now();
+                log(`✓ 渲染完成，耗时: ${endTime - startTime}ms`);
+                log(`图片数据大小: ${(dataUrl.length / 1024).toFixed(2)} KB`);
+                
+                // 下载图片
+                const link = document.createElement('a');
+                link.download = `test-export-${Date.now()}.png`;
+                link.href = dataUrl;
+                link.click();
+                
+                log('✓ 图片已下载');
+                log('=== 测试完成 ===');
+                log('');
+                log('请检查下载的图片：');
+                log('1. 紫色渐变背景（高亮区域）是否正常显示');
+                log('2. 浅蓝色渐变背景（产品明细区域）是否正常显示');
+                log('3. 紫色渐变标签（产品类型）是否正常显示');
+                log('4. 整体颜色是否饱和、不发白');
+                
+            } catch (error) {
+                log('❌ 导出失败: ' + error.message);
+                console.error('详细错误:', error);
+            }
+        }
+        
+        // 页面加载完成后自动测试
+        window.onload = function() {
+            log('页面加载完成');
+            log('dom-to-image库状态: ' + (typeof domtoimage !== 'undefined' ? '已加载' : '未加载'));
+        };
+    </script>
+</body>
+</html>

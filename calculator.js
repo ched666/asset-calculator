@@ -1030,13 +1030,19 @@ function showMultipleResults(solutions, amount, allocationType) {
         
         // 对于自定义配置，显示详细的产品信息
         let productDetailsHTML = '';
+        let totalAmount = amount;
+        let totalProfit = 0;
+        
         if (solution.allocations) {
             // 混合配置
-            productDetailsHTML = solution.allocations
+            const productItems = solution.allocations
                 .filter(({ ratio }) => ratio > 0.01)
                 .map(({ product, ratio }) => {
                     const typeLabel = product.type === 'deposit' ? '存款' : '理财';
                     const rate = product.type === 'deposit' ? product.clientRate : product.clientRate;
+                    const productAmount = amount * ratio / 100;
+                    const profit = productAmount * rate / 100;
+                    totalProfit += profit;
                     return `
                         <div class="product-detail-item">
                             <div class="product-info">
@@ -1045,21 +1051,28 @@ function showMultipleResults(solutions, amount, allocationType) {
                             </div>
                             <div class="product-metrics">
                                 <span class="product-ratio">${ratio.toFixed(1)}%</span>
+                                <span class="product-amount">${productAmount.toFixed(2)}</span>
                                 <span class="product-rate">${rate.toFixed(2)}%</span>
+                                <span class="product-profit">${profit.toFixed(2)}</span>
                             </div>
                         </div>
                     `;
                 }).join('');
+            
+            productDetailsHTML = productItems;
         } else if (solution.allocation) {
             // 单一类型配置
             const config = getConfig();
             const products = allocationType === 'deposit' ? config.deposits : config.wealth;
-            productDetailsHTML = solution.allocation
+            const productItems = solution.allocation
                 .map((ratio, idx) => {
                     if (ratio > 0.01) {
                         const product = products[idx];
                         const rate = allocationType === 'deposit' ? product.clientRate : product.clientRate;
                         const typeLabel = allocationType === 'deposit' ? '存款' : '理财';
+                        const productAmount = amount * ratio / 100;
+                        const profit = productAmount * rate / 100;
+                        totalProfit += profit;
                         return `
                             <div class="product-detail-item">
                                 <div class="product-info">
@@ -1068,7 +1081,9 @@ function showMultipleResults(solutions, amount, allocationType) {
                                 </div>
                                 <div class="product-metrics">
                                     <span class="product-ratio">${ratio.toFixed(1)}%</span>
+                                    <span class="product-amount">${productAmount.toFixed(2)}</span>
                                     <span class="product-rate">${rate.toFixed(2)}%</span>
+                                    <span class="product-profit">${profit.toFixed(2)}</span>
                                 </div>
                             </div>
                         `;
@@ -1077,12 +1092,14 @@ function showMultipleResults(solutions, amount, allocationType) {
                 })
                 .filter(html => html)
                 .join('');
+            
+            productDetailsHTML = productItems;
         }
         
         const summaryItems = solution.isCustom ? `
             <div class="summary-item highlight">
-                <span class="label">客户综合收益率：</span>
-                <span class="value">${solution.clientRate.toFixed(2)}%</span>
+                <span class="label">配置总金额：</span>
+                <span class="value">${amount.toFixed(2)} 万元</span>
             </div>
             <div class="summary-item">
                 <span class="label">使用产品数量：</span>
@@ -1094,10 +1111,23 @@ function showMultipleResults(solutions, amount, allocationType) {
                     <span class="header-label">产品明细</span>
                     <div class="header-metrics">
                         <span class="header-ratio">比例</span>
+                        <span class="header-amount">配置金额</span>
                         <span class="header-rate">收益率</span>
+                        <span class="header-profit">收益</span>
                     </div>
                 </div>
                 ${productDetailsHTML}
+                <div class="product-detail-item total-row">
+                    <div class="product-info">
+                        <span class="product-type-summary">汇总</span>
+                    </div>
+                    <div class="product-metrics">
+                        <span class="product-ratio-empty"></span>
+                        <span class="product-amount">${totalAmount.toFixed(2)}</span>
+                        <span class="product-rate">${solution.clientRate.toFixed(2)}%</span>
+                        <span class="product-profit">${totalProfit.toFixed(2)}</span>
+                    </div>
+                </div>
             </div>
             ` : ''}
         ` : `
@@ -1142,9 +1172,6 @@ function showMultipleResults(solutions, amount, allocationType) {
                 <div class="summary">
                     ${summaryItems}
                 </div>
-
-                <h3>配置明细</h3>
-                <div class="allocation-details-container"></div>
                 
                 <div class="action-buttons">
                     ${solution.isCustom ? '<button class="btn-primary" onclick="saveCustomScheme()">💾 保存为方案</button>' : ''}
@@ -1162,44 +1189,6 @@ function showMultipleResults(solutions, amount, allocationType) {
         }));
         
         resultSection.appendChild(solutionDiv);
-        
-        // 添加配置明细
-        const detailsContainer = solutionDiv.querySelector('.allocation-details-container');
-        const config = getConfig();
-        
-        if (allocationType === 'mixed' && solution.allocations) {
-            solution.allocations.forEach(({ product, ratio }) => {
-                if (ratio > 0.01) {
-                    const itemAmount = amount * ratio / 100;
-                    const typeLabel = product.type === 'deposit' ? '存款' : '理财';
-                    detailsContainer.innerHTML += `
-                        <div class="allocation-item">
-                            <span class="name">${product.name}（${typeLabel}）</span>
-                            <div class="details">
-                                <div class="percentage">${ratio.toFixed(2)}%</div>
-                                <div class="amount">${itemAmount.toFixed(2)} 万元</div>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-        } else {
-            const products = allocationType === 'deposit' ? config.deposits : config.wealth;
-            solution.allocation.forEach((ratio, idx) => {
-                if (ratio > 0.01) {
-                    const itemAmount = amount * ratio / 100;
-                    detailsContainer.innerHTML += `
-                        <div class="allocation-item">
-                            <span class="name">${products[idx].name}</span>
-                            <div class="details">
-                                <div class="percentage">${ratio.toFixed(2)}%</div>
-                                <div class="amount">${itemAmount.toFixed(2)} 万元</div>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-        }
     });
 
     // 滚动到结果区域
