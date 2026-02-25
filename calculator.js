@@ -2805,10 +2805,14 @@ function showSavedSchemeDetail(schemeId) {
     
     // 生成产品明细HTML
     let productDetailsHTML = '';
+    let totalProfit = 0;
     if (scheme.allocations && scheme.allocations.length > 0) {
         productDetailsHTML = scheme.allocations
             .map(allocation => {
                 const typeLabel = allocation.type === 'deposit' ? '存款' : '理财';
+                const productAmount = scheme.amount * allocation.ratio / 100;
+                const profit = productAmount * allocation.clientRate / 100;
+                totalProfit += profit;
                 return `
                     <div class="product-detail-item">
                         <div class="product-info">
@@ -2817,7 +2821,9 @@ function showSavedSchemeDetail(schemeId) {
                         </div>
                         <div class="product-metrics">
                             <span class="product-ratio">${allocation.ratio.toFixed(1)}%</span>
+                            <span class="product-amount">${productAmount.toFixed(2)}</span>
                             <span class="product-rate">${allocation.clientRate.toFixed(2)}%</span>
+                            <span class="product-profit">${profit.toFixed(2)}</span>
                         </div>
                     </div>
                 `;
@@ -2876,10 +2882,23 @@ function showSavedSchemeDetail(schemeId) {
                         <span class="header-label">产品明细</span>
                         <div class="header-metrics">
                             <span class="header-ratio">比例</span>
+                            <span class="header-amount">配置金额</span>
                             <span class="header-rate">收益率</span>
+                            <span class="header-profit">收益</span>
                         </div>
                     </div>
                     ${productDetailsHTML}
+                    <div class="product-detail-item total-row">
+                        <div class="product-info">
+                            <span class="product-type-summary">汇总</span>
+                        </div>
+                        <div class="product-metrics">
+                            <span class="product-ratio-empty"></span>
+                            <span class="product-amount">${scheme.amount.toFixed(2)}</span>
+                            <span class="product-rate">${scheme.clientRate.toFixed(2)}%</span>
+                            <span class="product-profit">${totalProfit.toFixed(2)}</span>
+                        </div>
+                    </div>
                 </div>
                 ` : ''}
             </div>

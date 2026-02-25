@@ -988,7 +988,7 @@ input[type="number"]::-webkit-outer-spin-button {
         width: 100%;
         justify-content: flex-start;
         margin-bottom: 6px;
-        gap: 6px;
+        gap: 4px;
     }
     
     .product-detail-item .product-type {
@@ -999,6 +999,7 @@ input[type="number"]::-webkit-outer-spin-button {
     .product-detail-item .product-name {
         font-size: 13px;
         font-weight: 600;
+        margin-left: 0;
     }
     
     .product-detail-item .product-metrics {
@@ -1111,9 +1112,9 @@ input[type="number"]::-webkit-outer-spin-button {
     .product-detail-item.total-row .product-profit::before {
         color: rgba(255, 255, 255, 0.8);
         font-size: 9px;
-        width: auto;
-        margin-right: 5px;
-        margin-bottom: 0;
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 2px;
     }
     
     .product-detail-item.total-row .product-amount::after,

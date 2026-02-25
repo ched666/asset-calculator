@@ -49,6 +49,41 @@
             <button class="btn-secondary" onclick="resetConfig()">恢复默认</button>
         </div>
 
+        <div class="card">
+            <h2>☁️ 云端配置共享</h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                修改产品配置后，点击“发布共享”即可同步到云端，所有新用户将自动加载最新配置
+            </p>
+            
+            <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn-primary" onclick="saveAndPublish()" style="font-size: 16px; padding: 12px 30px;">
+                    💾 保存配置
+                </button>
+                <button class="btn-primary" onclick="publishToCloud()" style="font-size: 16px; padding: 12px 30px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                    🚀 发布共享
+                </button>
+                <button class="btn-secondary" onclick="testToken()" style="font-size: 14px; padding: 10px 20px;">
+                    🔍 测试Token
+                </button>
+                <button class="btn-secondary" onclick="resetToken()" style="font-size: 14px; padding: 10px 20px;">
+                    🔑 重置Token
+                </button>
+            </div>
+            
+            <div id="publishStatus" style="margin-top: 15px; font-size: 14px; text-align: center;"></div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: #f0f7ff; border-radius: 8px; border-left: 4px solid #667eea;">
+                <p style="margin: 0; color: #555; font-size: 14px;">
+                    <strong>💡 提示：</strong><br>
+                    • 保存配置：仅保存到本地浏览器<br>
+                    • 发布共享：推送到云端，所有用户可见<br>
+                    • <strong>首次使用请点击“🔍 测试Token”检查配置</strong><br>
+                    • 遇到错误请点击“🔑 重置Token”重新配置<br>
+                    • 发布时会同时上传产品配置和银行推荐方案
+                </p>
+            </div>
+        </div>
+
         <div id="saveMessage" class="save-message" style="display: none;">
             ✓ 配置已保存
         </div>

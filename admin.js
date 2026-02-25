@@ -208,3 +208,210 @@ function showSaveMessage() {
         message.style.display = 'none';
     }, 2000);
 }
+
+// GitHub配置（内置）
+const GITHUB_CONFIG = {
+    user: 'ched666',
+    repo: 'asset-calculator',
+    token: ''  // Token由管理员首次输入后保存在localStorage
+};
+
+// 获取GitHub Token
+function getGithubToken() {
+    const saved = localStorage.getItem('githubToken');
+    if (saved) return saved;
+    return GITHUB_CONFIG.token;
+}
+
+// 保存Token到本地
+function saveToken(token) {
+    localStorage.setItem('githubToken', token);
+    alert('✓ Token已保存到本地浏览器');
+}
+
+// 检查并提示输入Token
+function ensureToken() {
+    let token = getGithubToken();
+    if (!token) {
+        const instructions = 
+            '⚠️ 首次使用需要配置GitHub Token\n\n' +
+            '🔑 创建Fine-grained Token（推荐）：\n' +
+            'https://github.com/settings/personal-access-tokens/new\n\n' +
+            '🎯 配置要点：\n' +
+            '1. Token name: asset-calculator-publisher\n' +
+            '2. Repository access: Only select repositories\n' +
+            '3. 选择: ched666/asset-calculator\n' +
+            '4. Permissions > Contents: Read and write\n' +
+            '5. 点击"Generate token"并复制\n\n' +
+            '请输入Token：';
+        
+        token = prompt(instructions);
+        
+        if (!token) {
+            return null;
+        }
+        
+        token = token.trim();
+        
+        if (token.length < 20) {
+            alert('❌ Token格式不正确，请重新输入');
+            return null;
+        }
+        
+        saveToken(token);
+    }
+    return token;
+}
+
+// 保存并发布
+async function saveAndPublish() {
+    saveConfig();
+    await new Promise(resolve => setTimeout(resolve, 500));
+    publishToCloud();
+}
+
+// 发布到云端
+async function publishToCloud() {
+    const statusDiv = document.getElementById('publishStatus');
+    statusDiv.style.color = '#667eea';
+    statusDiv.textContent = '正在发布到云端...';
+    
+    try {
+        const token = ensureToken();
+        if (!token) {
+            throw new Error('未配置GitHub Token');
+        }
+        
+        // 准备配置数据
+        const config = {
+            productConfig: currentConfig,
+            bankSchemes: JSON.parse(localStorage.getItem('bankSchemes') || '[]')
+        };
+        
+        const content = JSON.stringify(config, null, 2);
+        const base64Content = btoa(unescape(encodeURIComponent(content)));
+        
+        // 先获取文件的SHA
+        const getUrl = `https://api.github.com/repos/${GITHUB_CONFIG.user}/${GITHUB_CONFIG.repo}/contents/default-config.json`;
+        let sha = null;
+        
+        try {
+            const getResponse = await fetch(getUrl, {
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            
+            if (getResponse.ok) {
+                const fileData = await getResponse.json();
+                sha = fileData.sha;
+            }
+        } catch (e) {
+            // 文件不存在
+        }
+        
+        // 更新或创建文件
+        const putUrl = `https://api.github.com/repos/${GITHUB_CONFIG.user}/${GITHUB_CONFIG.repo}/contents/default-config.json`;
+        const body = {
+            message: '更新产品配置 - 管理员发布',
+            content: base64Content,
+            branch: 'main'
+        };
+        
+        if (sha) {
+            body.sha = sha;
+        }
+        
+        const response = await fetch(putUrl, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+        
+        if (!response.ok) {
+            const error = await response.json();
+            
+            if (response.status === 401) {
+                throw new Error('Token无效或已过期，请点击“🔑 重置Token”后重新配置');
+            } else if (response.status === 403) {
+                throw new Error('Token权限不足，需要Contents的Read and write权限');
+            } else if (response.status === 404) {
+                throw new Error('仓库不存在或Token无访问权限');
+            } else {
+                throw new Error(error.message || `HTTP ${response.status}`);
+            }
+        }
+        
+        statusDiv.style.color = '#28a745';
+        statusDiv.innerHTML = '✅ 发布成功！配置已同步到云端<br><small>新用户将在1-2分钟后看到更新</small>';
+        
+        setTimeout(() => {
+            statusDiv.textContent = '';
+        }, 5000);
+        
+    } catch (error) {
+        statusDiv.style.color = '#e74c3c';
+        statusDiv.textContent = '❌ 发布失败：' + error.message;
+        console.error('发布错误：', error);
+    }
+}
+
+// 重置Token
+function resetToken() {
+    if (confirm('确定要清除已保存的GitHub Token吗？\n下次发布时需要重新输入。')) {
+        localStorage.removeItem('githubToken');
+        alert('✅ Token已清除，下次发布时将重新提示输入。');
+    }
+}
+
+// 测试Token是否有效
+async function testToken() {
+    const statusDiv = document.getElementById('publishStatus');
+    const token = getGithubToken();
+    
+    if (!token) {
+        statusDiv.style.color = '#e74c3c';
+        statusDiv.textContent = '⚠️ 未配置Token，请点击“发布共享”进行配置';
+        return;
+    }
+    
+    statusDiv.style.color = '#667eea';
+    statusDiv.textContent = '正在测试Token...';
+    
+    try {
+        const response = await fetch(`https://api.github.com/repos/${GITHUB_CONFIG.user}/${GITHUB_CONFIG.repo}`, {
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+        
+        if (response.ok) {
+            statusDiv.style.color = '#28a745';
+            statusDiv.innerHTML = '✅ Token有效！可以正常发布配置。';
+        } else if (response.status === 401) {
+            statusDiv.style.color = '#e74c3c';
+            statusDiv.innerHTML = '❌ Token无效或已过期<br><small>请点击“🔑 重置Token”后重新配置</small>';
+        } else if (response.status === 403) {
+            statusDiv.style.color = '#e74c3c';
+            statusDiv.innerHTML = '❌ Token权限不足<br><small>需要Contents的Read and write权限</small>';
+        } else if (response.status === 404) {
+            statusDiv.style.color = '#e74c3c';
+            statusDiv.innerHTML = '❌ 仓库不存在或无访问权限<br><small>请检查Token是否有asset-calculator仓库权限</small>';
+        } else {
+            throw new Error(`HTTP ${response.status}`);
+        }
+    } catch (error) {
+        statusDiv.style.color = '#e74c3c';
+        statusDiv.textContent = '❌ 测试失败：' + error.message;
+    }
+    
+    setTimeout(() => {
+        statusDiv.textContent = '';
+    }, 5000);
+}
