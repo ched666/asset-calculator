@@ -2408,6 +2408,36 @@ async function exportSchemeAsImage(solutionIndex) {
             contentDiv.style.display = 'block';
         }
         
+        // 关键修复：将计算样式内联到元素，确保html2canvas能正确渲染
+        function inlineStyles(element, sourceElement) {
+            const computedStyle = window.getComputedStyle(sourceElement);
+            
+            // 内联关键样式属性
+            const importantStyles = [
+                'background', 'background-color', 'background-image', 'background-size', 'background-position',
+                'color', 'border', 'border-radius', 'padding', 'margin',
+                'font-size', 'font-weight', 'font-family',
+                'display', 'width', 'height'
+            ];
+            
+            importantStyles.forEach(prop => {
+                const value = computedStyle.getPropertyValue(prop);
+                if (value && value !== 'none' && value !== 'normal') {
+                    element.style.setProperty(prop, value, 'important');
+                }
+            });
+        }
+        
+        // 对克隆元素及其所有子元素应用内联样式
+        const allClonedElements = [clone, ...clone.querySelectorAll('*')];
+        const allSourceElements = [solutionCard, ...solutionCard.querySelectorAll('*')];
+        
+        allClonedElements.forEach((clonedEl, index) => {
+            if (allSourceElements[index]) {
+                inlineStyles(clonedEl, allSourceElements[index]);
+            }
+        });
+        
         // 添加水印
         const watermark = document.createElement('div');
         watermark.style.cssText = 'text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 12px;';
@@ -2421,13 +2451,13 @@ async function exportSchemeAsImage(solutionIndex) {
         document.body.appendChild(exportContainer);
         
         // 等待浏览器渲染完成
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // 渲染为canvas
         const canvas = await html2canvas(exportContainer, {
             scale: 2,
             backgroundColor: '#ffffff',
-            logging: true,
+            logging: false,
             useCORS: true,
             allowTaint: true
         });
