@@ -24,13 +24,24 @@ header {
     color: white;
     margin-bottom: 30px;
     position: relative;
+    padding: 15px 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
 }
 
 header h1 {
-    font-size: 28px;
+    font-size: 24px;
     margin-bottom: 0;
     flex: 1;
     text-align: left;
+    font-weight: 600;
+}
+
+header > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .admin-link {
@@ -39,13 +50,16 @@ header h1 {
     text-decoration: none;
     padding: 8px 16px;
     background: rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
+    border-radius: 8px;
     font-size: 14px;
-    transition: background 0.3s;
+    transition: all 0.3s;
+    font-weight: 500;
+    white-space: nowrap;
 }
 
 .admin-link:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.35);
+    transform: translateY(-1px);
 }
 
 .card {
@@ -834,7 +848,7 @@ input[type="number"]::-webkit-outer-spin-button {
     font-weight: 500;
     color: #2c3e50;
     flex-shrink: 0;
-    margin-left: 4px;
+    margin-left: 0;
 }
 
 .product-detail-item .product-type {
@@ -953,6 +967,56 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 @media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px 15px;
+        align-items: stretch;
+    }
+    
+    header h1 {
+        font-size: 18px;
+        text-align: center;
+    }
+    
+    header > div {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .admin-link {
+        font-size: 13px;
+        padding: 6px 12px;
+    }
+    
+    header .btn-secondary {
+        font-size: 12px !important;
+        padding: 6px 12px !important;
+    }
+    
+    .section-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+    
+    .section-title {
+        font-size: 18px;
+        text-align: center;
+    }
+    
+    .btn-sync {
+        width: 100%;
+        padding: 10px 18px;
+        font-size: 15px;
+    }
+    
+    .section-description {
+        font-size: 13px;
+        text-align: center;
+    }
+    
     .action-buttons {
         flex-direction: column;
     }
