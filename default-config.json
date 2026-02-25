@@ -59,29 +59,21 @@
     {
       "id": 1,
       "name": "存款流动性优先方案",
-      "type": "mixed",
+      "type": "deposit",
       "preference": "liquidity",
       "description": "高比例活期存款，保证资金灵活性",
       "products": [
         {
+          "name": "活期存款",
+          "ratio": 40
+        },
+        {
           "name": "7天通知",
-          "ratio": 10
-        },
-        {
-          "name": "3个月",
-          "ratio": 0
-        },
-        {
-          "name": "14天赎回",
-          "ratio": 15
-        },
-        {
-          "name": "7天赎回",
           "ratio": 30
         },
         {
-          "name": "6个月",
-          "ratio": 45
+          "name": "3个月",
+          "ratio": 30
         }
       ],
       "enabled": false
@@ -150,7 +142,7 @@
           "ratio": 40
         }
       ],
-      "enabled": true
+      "enabled": false
     },
     {
       "id": 5,
@@ -168,7 +160,7 @@
           "ratio": 40
         }
       ],
-      "enabled": true
+      "enabled": false
     },
     {
       "id": 6,
@@ -190,7 +182,7 @@
           "ratio": 30
         }
       ],
-      "enabled": true
+      "enabled": false
     },
     {
       "id": 7,
