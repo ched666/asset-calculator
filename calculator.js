@@ -2902,11 +2902,6 @@ function showSavedSchemeDetail(schemeId) {
                 </div>
                 ` : ''}
             </div>
-
-            <h3>配置明细</h3>
-            <div class="allocation-details-container">
-                ${allocationDetailsHTML}
-            </div>
             
             <div class="action-buttons">
                 <button class="btn-secondary" onclick="exportSchemeAsImage(0)">📷 导出为图片</button>
