@@ -2408,34 +2408,118 @@ async function exportSchemeAsImage(solutionIndex) {
             contentDiv.style.display = 'block';
         }
         
-        // 关键修复：将计算样式内联到元素，确保html2canvas能正确渲染
-        function inlineStyles(element, sourceElement) {
-            const computedStyle = window.getComputedStyle(sourceElement);
-            
-            // 内联关键样式属性
-            const importantStyles = [
-                'background', 'background-color', 'background-image', 'background-size', 'background-position',
-                'color', 'border', 'border-radius', 'padding', 'margin',
-                'font-size', 'font-weight', 'font-family',
-                'display', 'width', 'height'
-            ];
-            
-            importantStyles.forEach(prop => {
-                const value = computedStyle.getPropertyValue(prop);
-                if (value && value !== 'none' && value !== 'normal') {
-                    element.style.setProperty(prop, value, 'important');
-                }
+        // 手动设置关键元素的样式，确保html2canvas能正确渲染
+        
+        // 1. 设置highlight项的渐变背景
+        const highlightItems = clone.querySelectorAll('.summary-item.highlight');
+        highlightItems.forEach(item => {
+            item.style.cssText += `
+                background: linear-gradient(135deg, rgb(102, 126, 234) 0%, rgb(118, 75, 162) 100%) !important;
+                color: white !important;
+                padding: 12px 20px !important;
+                border-radius: 8px !important;
+                margin-bottom: 10px !important;
+            `;
+            // 确保内部文字也是白色
+            const labels = item.querySelectorAll('.label, .value');
+            labels.forEach(el => {
+                el.style.color = 'white !important';
             });
+        });
+        
+        // 2. 设置产品明细区域的渐变背景
+        const productDetailsSection = clone.querySelector('.product-details-section');
+        if (productDetailsSection) {
+            productDetailsSection.style.cssText += `
+                background: linear-gradient(135deg, rgb(245, 247, 250) 0%, rgb(195, 207, 226) 100%) !important;
+                padding: 20px !important;
+                border-radius: 12px !important;
+                margin-top: 20px !important;
+            `;
         }
         
-        // 对克隆元素及其所有子元素应用内联样式
-        const allClonedElements = [clone, ...clone.querySelectorAll('*')];
-        const allSourceElements = [solutionCard, ...solutionCard.querySelectorAll('*')];
+        // 3. 设置产品明细表头背景
+        const productDetailsHeader = clone.querySelector('.product-details-header');
+        if (productDetailsHeader) {
+            productDetailsHeader.style.cssText += `
+                background: rgba(102, 126, 234, 0.08) !important;
+                padding: 10px 16px !important;
+                border-radius: 8px !important;
+                margin-bottom: 15px !important;
+            `;
+        }
         
-        allClonedElements.forEach((clonedEl, index) => {
-            if (allSourceElements[index]) {
-                inlineStyles(clonedEl, allSourceElements[index]);
+        // 4. 设置产品类型标签
+        const productTypes = clone.querySelectorAll('.product-type');
+        productTypes.forEach(type => {
+            type.style.cssText += `
+                background: rgb(102, 126, 234) !important;
+                color: white !important;
+                padding: 3px 10px !important;
+                border-radius: 12px !important;
+                font-size: 12px !important;
+            `;
+        });
+        
+        // 5. 设置产品比例背景
+        const productRatios = clone.querySelectorAll('.product-ratio');
+        productRatios.forEach(ratio => {
+            ratio.style.cssText += `
+                background: rgba(102, 126, 234, 0.1) !important;
+                color: rgb(44, 62, 80) !important;
+                padding: 4px 10px !important;
+                border-radius: 4px !important;
+                font-weight: 600 !important;
+            `;
+        });
+        
+        // 6. 设置产品收益率颜色
+        const productRates = clone.querySelectorAll('.product-rate');
+        productRates.forEach(rate => {
+            rate.style.cssText += `
+                color: rgb(245, 87, 108) !important;
+                font-weight: 600 !important;
+            `;
+        });
+        
+        // 7. 设置倾向标签背景
+        const preferenceBadges = clone.querySelectorAll('.preference-badge');
+        preferenceBadges.forEach(badge => {
+            if (badge.classList.contains('yield')) {
+                badge.style.background = 'linear-gradient(135deg, rgb(240, 147, 251) 0%, rgb(245, 87, 108) 100%) !important';
+            } else if (badge.classList.contains('liquidity')) {
+                badge.style.background = 'linear-gradient(135deg, rgb(79, 172, 254) 0%, rgb(0, 242, 254) 100%) !important';
+            } else if (badge.classList.contains('balance')) {
+                badge.style.background = 'linear-gradient(135deg, rgb(67, 233, 123) 0%, rgb(56, 249, 215) 100%) !important';
             }
+            badge.style.cssText += `
+                color: white !important;
+                padding: 6px 16px !important;
+                border-radius: 20px !important;
+            `;
+        });
+        
+        // 8. 设置方案描述背景
+        const solutionDescription = clone.querySelector('.solution-description');
+        if (solutionDescription) {
+            solutionDescription.style.cssText += `
+                background: rgb(248, 249, 255) !important;
+                color: rgb(85, 85, 85) !important;
+                padding: 12px 16px !important;
+                border-radius: 8px !important;
+                border-left: 4px solid rgb(102, 126, 234) !important;
+            `;
+        }
+        
+        // 9. 设置产品明细项背景
+        const productDetailItems = clone.querySelectorAll('.product-detail-item');
+        productDetailItems.forEach(item => {
+            item.style.cssText += `
+                background: white !important;
+                padding: 12px 16px !important;
+                border-radius: 8px !important;
+                margin-bottom: 8px !important;
+            `;
         });
         
         // 添加水印
