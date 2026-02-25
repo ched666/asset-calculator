@@ -776,13 +776,17 @@ input[type="number"]::-webkit-outer-spin-button {
 .product-detail-item .product-info {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
 }
 
 .product-detail-item .product-name {
     font-size: 15px;
     font-weight: 500;
     color: #2c3e50;
+    flex-shrink: 0;
+    margin-left: 4px;
 }
 
 .product-detail-item .product-type {
@@ -791,17 +795,6 @@ input[type="number"]::-webkit-outer-spin-button {
     background: #667eea;
     color: white;
     border-radius: 12px;
-}
-
-.product-detail-item .product-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    min-width: 0;
-}
-
-.product-detail-item .product-name {
     flex-shrink: 0;
 }
 
@@ -920,58 +913,140 @@ input[type="number"]::-webkit-outer-spin-button {
         width: 100%;
     }
     
-    /* 产品明细移动端优化 - 使用横向滚动 */
+    /* 产品明细移动端优化 - 纵向卡片布局 */
     .product-details-section {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        overflow: visible;
+    }
+    
+    .product-details-header {
+        display: none;
     }
     
     .product-detail-item {
-        min-width: 600px;
-        flex-direction: row;
-        align-items: center;
-        gap: 10px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+        padding: 16px;
     }
     
     .product-detail-item .product-info {
-        flex: 0 0 140px;
-        min-width: 140px;
+        flex: none;
+        width: 100%;
+        justify-content: flex-start;
+        margin-bottom: 8px;
+    }
+    
+    .product-detail-item .product-type {
+        font-size: 11px;
+        padding: 2px 8px;
+    }
+    
+    .product-detail-item .product-name {
+        font-size: 14px;
+        font-weight: 600;
     }
     
     .product-detail-item .product-metrics {
-        flex: 1;
-        justify-content: flex-end;
+        flex: none;
+        width: 100%;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 10px;
+        justify-content: start;
     }
     
     .product-detail-item .product-ratio,
     .product-detail-item .product-amount,
     .product-detail-item .product-rate,
     .product-detail-item .product-profit {
-        min-width: 70px;
+        min-width: auto;
+        text-align: left;
         font-size: 13px;
+        display: flex;
+        flex-direction: column;
+        background: rgba(102, 126, 234, 0.05);
+        padding: 8px 10px;
+        border-radius: 6px;
     }
     
-    .product-details-header {
-        min-width: 600px;
+    .product-detail-item .product-ratio::before {
+        content: '比例';
+        font-size: 11px;
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 4px;
     }
     
-    .product-details-section .header-label {
-        flex: 0 0 140px;
+    .product-detail-item .product-amount::before {
+        content: '配置金额';
+        font-size: 11px;
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 4px;
     }
     
-    .product-details-section .header-metrics {
-        flex: 1;
-        justify-content: flex-end;
-        gap: 10px;
+    .product-detail-item .product-rate::before {
+        content: '收益率';
+        font-size: 11px;
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 4px;
     }
     
-    .product-details-section .header-ratio,
-    .product-details-section .header-amount,
-    .product-details-section .header-rate,
-    .product-details-section .header-profit {
-        min-width: 70px;
-        font-size: 12px;
+    .product-detail-item .product-profit::before {
+        content: '收益';
+        font-size: 11px;
+        color: #667eea;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    
+    .product-detail-item .product-amount::after {
+        content: ' 万元';
+        font-size: 11px;
+        color: #999;
+    }
+    
+    .product-detail-item .product-profit::after {
+        content: ' 万元';
+        font-size: 11px;
+        color: #999;
+    }
+    
+    /* 汇总行手机端样式 */
+    .product-detail-item.total-row {
+        margin-top: 15px;
+    }
+    
+    .product-detail-item.total-row .product-type-summary {
+        font-size: 13px;
+        padding: 3px 10px;
+    }
+    
+    .product-detail-item.total-row .product-metrics {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+    
+    .product-detail-item.total-row .product-ratio-empty {
+        display: none;
+    }
+    
+    .product-detail-item.total-row .product-amount,
+    .product-detail-item.total-row .product-rate,
+    .product-detail-item.total-row .product-profit {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    
+    .product-detail-item.total-row .product-amount::before,
+    .product-detail-item.total-row .product-rate::before,
+    .product-detail-item.total-row .product-profit::before {
+        color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .product-detail-item.total-row .product-amount::after,
+    .product-detail-item.total-row .product-profit::after {
+        color: rgba(255, 255, 255, 0.7);
     }
 }
 
