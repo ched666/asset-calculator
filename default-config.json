@@ -47,6 +47,11 @@
         "name": "3个月赎回",
         "clientRate": 2,
         "commissionRate": 0.05
+      },
+      {
+        "name": "新理财产品test2",
+        "clientRate": 2,
+        "commissionRate": 0.05
       }
     ]
   },
