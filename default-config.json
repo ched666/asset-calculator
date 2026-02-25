@@ -1,23 +1,87 @@
 {
+  "productConfig": {
+    "deposits": [
+      {
+        "name": "活期存款",
+        "clientRate": 0.05,
+        "ftpRate": 2.4
+      },
+      {
+        "name": "7天通知",
+        "clientRate": 0.75,
+        "ftpRate": 1.9
+      },
+      {
+        "name": "3个月",
+        "clientRate": 1,
+        "ftpRate": 2
+      },
+      {
+        "name": "6个月",
+        "clientRate": 1.2,
+        "ftpRate": 2.05
+      },
+      {
+        "name": "1年",
+        "clientRate": 1.3,
+        "ftpRate": 2.15
+      }
+    ],
+    "wealth": [
+      {
+        "name": "T+1赎回",
+        "clientRate": 1.75,
+        "commissionRate": 0.1
+      },
+      {
+        "name": "7天赎回",
+        "clientRate": 2.08,
+        "commissionRate": 0.05
+      },
+      {
+        "name": "14天赎回",
+        "clientRate": 1.87,
+        "commissionRate": 0.05
+      },
+      {
+        "name": "3个月赎回",
+        "clientRate": 2,
+        "commissionRate": 0.05
+      },
+      {
+        "name": "新理财产品test",
+        "clientRate": 2,
+        "commissionRate": 0.05
+      }
+    ]
+  },
   "bankSchemes": [
     {
       "id": 1,
       "name": "存款流动性优先方案",
-      "type": "deposit",
+      "type": "mixed",
       "preference": "liquidity",
       "description": "高比例活期存款，保证资金灵活性",
       "products": [
         {
-          "name": "活期存款",
-          "ratio": 40
-        },
-        {
           "name": "7天通知",
-          "ratio": 30
+          "ratio": 10
         },
         {
           "name": "3个月",
+          "ratio": 0
+        },
+        {
+          "name": "14天赎回",
+          "ratio": 15
+        },
+        {
+          "name": "7天赎回",
           "ratio": 30
+        },
+        {
+          "name": "6个月",
+          "ratio": 45
         }
       ],
       "enabled": false
@@ -86,7 +150,7 @@
           "ratio": 40
         }
       ],
-      "enabled": false
+      "enabled": true
     },
     {
       "id": 5,
@@ -104,7 +168,7 @@
           "ratio": 40
         }
       ],
-      "enabled": false
+      "enabled": true
     },
     {
       "id": 6,
@@ -126,7 +190,7 @@
           "ratio": 30
         }
       ],
-      "enabled": false
+      "enabled": true
     },
     {
       "id": 7,
@@ -198,56 +262,5 @@
       ],
       "enabled": true
     }
-  ],
-  "productConfig": {
-    "deposits": [
-      {
-        "name": "活期存款",
-        "clientRate": 0.05,
-        "ftpRate": 2.4
-      },
-      {
-        "name": "7天通知",
-        "clientRate": 0.75,
-        "ftpRate": 1.9
-      },
-      {
-        "name": "3个月",
-        "clientRate": 1,
-        "ftpRate": 2
-      },
-      {
-        "name": "6个月",
-        "clientRate": 1.2,
-        "ftpRate": 2.05
-      },
-      {
-        "name": "1年",
-        "clientRate": 1.3,
-        "ftpRate": 2.15
-      }
-    ],
-    "wealth": [
-      {
-        "name": "T+1赎回",
-        "clientRate": 1.75,
-        "commissionRate": 0.1
-      },
-      {
-        "name": "7天赎回",
-        "clientRate": 2.08,
-        "commissionRate": 0.05
-      },
-      {
-        "name": "14天赎回",
-        "clientRate": 1.87,
-        "commissionRate": 0.05
-      },
-      {
-        "name": "3个月赎回",
-        "clientRate": 2,
-        "commissionRate": 0.05
-      }
-    ]
-  }
+  ]
 }
