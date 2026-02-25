@@ -2441,8 +2441,6 @@ async function exportSchemeAsImage(solutionIndex) {
         alert('导出失败，请重试');
     }
 }
-    }
-}
 
 // 导出方案为Excel
 function exportSchemeAsExcel(solutionIndex) {
