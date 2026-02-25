@@ -1276,11 +1276,12 @@ function renderCustomProducts() {
                     <span class="product-name">${product.name}</span>
                     <span class="product-rate">收益率: ${product.clientRate}%</span>
                     <div class="ratio-input-group">
+                        <button class="btn-ratio-adjust-small" onclick="adjustCustomRatio('deposit_${index}', -5)">-</button>
                         <input type="number" id="deposit_${index}" 
                                min="0" max="100" step="5" value="0" 
                                oninput="updateTotalRatio()">
                         <span style="margin-left: 5px;">%</span>
-                        <button class="btn-clear-ratio" onclick="clearProductRatio('deposit', ${index})" title="归零">归零</button>
+                        <button class="btn-ratio-adjust-small" onclick="adjustCustomRatio('deposit_${index}', 5)">+</button>
                     </div>
                 </div>
             `;
@@ -1299,11 +1300,12 @@ function renderCustomProducts() {
                     <span class="product-name">${product.name}</span>
                     <span class="product-rate">收益率: ${product.clientRate}%</span>
                     <div class="ratio-input-group">
+                        <button class="btn-ratio-adjust-small" onclick="adjustCustomRatio('wealth_${index}', -5)">-</button>
                         <input type="number" id="wealth_${index}" 
                                min="0" max="100" step="5" value="0" 
                                oninput="updateTotalRatio()">
                         <span style="margin-left: 5px;">%</span>
-                        <button class="btn-clear-ratio" onclick="clearProductRatio('wealth', ${index})" title="归零">归零</button>
+                        <button class="btn-ratio-adjust-small" onclick="adjustCustomRatio('wealth_${index}', 5)">+</button>
                     </div>
                 </div>
             `;
@@ -1674,6 +1676,10 @@ function selectScheme(schemeId, buttonElement) {
                     <span>${(amount * totalClientRate / 100).toFixed(4)}万元</span>
                 </div>
             </div>
+            <div class="action-buttons" style="display: flex; gap: 10px; margin-top: 20px; justify-content: center; flex-wrap: wrap;">
+                <button class="btn-secondary" onclick="exportBankSchemeAsImage('${scheme.name}')">📷 导出为图片</button>
+                <button class="btn-secondary" onclick="exportBankSchemeAsExcel('${scheme.name}')">📊 导出为Excel</button>
+            </div>
         </div>
     `;
     
@@ -1681,6 +1687,32 @@ function selectScheme(schemeId, buttonElement) {
     const detailDiv = document.createElement('div');
     detailDiv.className = 'card scheme-detail-result';
     detailDiv.innerHTML = resultHTML;
+    
+    // 添加数据属性供导出使用
+    const solutionCard = detailDiv.querySelector('.solution-card');
+    if (solutionCard) {
+        // 准备导出数据
+        const exportData = {
+            name: scheme.name,
+            description: scheme.description,
+            preference: scheme.preference,
+            amount: amount,
+            clientRate: totalClientRate,
+            products: scheme.products.map(product => {
+                let productData = config.deposits.find(p => p.name === product.name);
+                if (!productData) {
+                    productData = config.wealth.find(p => p.name === product.name);
+                }
+                return {
+                    name: product.name,
+                    ratio: product.ratio,
+                    rate: productData ? productData.clientRate : 0,
+                    type: config.deposits.find(p => p.name === product.name) ? '存款' : '理财'
+                };
+            })
+        };
+        solutionCard.setAttribute('data-solution', JSON.stringify(exportData));
+    }
     
     // 找到当前方案卡片，将详情插入到它下方
     if (buttonElement) {
@@ -1881,7 +1913,6 @@ function showInferenceSuggestion() {
                            readonly style="pointer-events: none;">
                     <span class="percent-symbol">%</span>
                     <button class="btn-ratio-adjust btn-increase" onclick="adjustSuggestionRatio(${index}, 5)" title="增加5%">+</button>
-                    <button class="btn-clear-ratio-small" onclick="clearSuggestionRatio(${index})" title="归零">归零</button>
                 </div>
             </div>
         `;
@@ -2386,6 +2417,21 @@ function adjustNumberInput(inputId, amount) {
     }
 }
 
+// 调整自定义产品比例
+function adjustCustomRatio(inputId, amount) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    let currentValue = parseFloat(input.value) || 0;
+    let newValue = currentValue + amount;
+    
+    // 限制在0-100之间
+    newValue = Math.max(0, Math.min(100, newValue));
+    
+    input.value = newValue;
+    updateTotalRatio(); // 更新总比例显示
+}
+
 // 页面加载时初始化
 document.addEventListener('DOMContentLoaded', async function() {
     // 首次访问时加载默认配置
@@ -2596,6 +2642,142 @@ function toggleSolutionCollapse(index) {
         contentDiv.style.display = isCollapsed ? 'block' : 'none';
         button.textContent = isCollapsed ? '▼' : '▲';
         button.classList.toggle('collapsed', !isCollapsed);
+    }
+}
+
+// 导出银行推荐方案为图片
+async function exportBankSchemeAsImage(schemeName) {
+    const solutionCard = document.querySelector('.scheme-detail-result .solution-card');
+    
+    if (!solutionCard) {
+        alert('未找到方案数据');
+        return;
+    }
+    
+    // 检查是否已加载dom-to-image库
+    if (typeof domtoimage === 'undefined') {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/dom-to-image@2.6.0/dist/dom-to-image.min.js';
+        script.onload = () => {
+            console.log('dom-to-image加载完成，重新导出');
+            exportBankSchemeAsImage(schemeName);
+        };
+        script.onerror = () => {
+            console.error('dom-to-image加载失败');
+            alert('导出库加载失败，请刷新页面重试');
+        };
+        document.head.appendChild(script);
+        console.log('正在加载导出功能...');
+        return;
+    }
+    
+    try {
+        console.log('开始导出图片...');
+        
+        // 临时隐藏操作按钮
+        const actionButtons = solutionCard.querySelector('.action-buttons');
+        const originalActionDisplay = actionButtons ? actionButtons.style.display : '';
+        if (actionButtons) actionButtons.style.display = 'none';
+        
+        // 添加水印
+        const watermark = document.createElement('div');
+        watermark.className = 'export-watermark';
+        watermark.style.cssText = 'text-align: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0; color: #999; font-size: 12px;';
+        watermark.innerHTML = `
+            <div>资产配置计算器</div>
+            <div>生成时间：${new Date().toLocaleString()}</div>
+        `;
+        solutionCard.appendChild(watermark);
+        
+        // 使用dom-to-image导出
+        console.log('使用dom-to-image渲染...');
+        const dataUrl = await domtoimage.toPng(solutionCard, {
+            width: solutionCard.offsetWidth,
+            height: solutionCard.offsetHeight,
+            style: {
+                margin: '0'
+            },
+            quality: 1.0,
+            cacheBust: true
+        });
+        
+        console.log('图片生成成功');
+        
+        // 恢复原始状态
+        if (actionButtons) actionButtons.style.display = originalActionDisplay;
+        watermark.remove();
+        
+        // 下载图片
+        const link = document.createElement('a');
+        link.download = `${schemeName}_${new Date().toLocaleDateString()}.png`;
+        link.href = dataUrl;
+        link.click();
+        
+        console.log('图片下载完成');
+        
+    } catch (error) {
+        console.error('导出失败：', error);
+        alert('导出失败，请重试');
+    }
+}
+
+// 导出银行推荐方案为Excel
+function exportBankSchemeAsExcel(schemeName) {
+    const solutionCard = document.querySelector('.scheme-detail-result .solution-card');
+    
+    if (!solutionCard) {
+        alert('未找到方案数据');
+        return;
+    }
+    
+    try {
+        // 获取方案数据
+        const solutionData = JSON.parse(solutionCard.getAttribute('data-solution'));
+        
+        // 构建Excel内容(使用CSV格式)
+        let csvContent = '\\ufeff'; // UTF-8 BOM
+        
+        // 标题
+        csvContent += '资产配置推荐方案\\n\\n';
+        
+        // 基本信息
+        csvContent += '方案信息\\n';
+        csvContent += `方案名称,${solutionData.name}\\n`;
+        csvContent += `方案说明,${solutionData.description}\\n`;
+        csvContent += `生成时间,${new Date().toLocaleString()}\\n`;
+        csvContent += `资金金额,${solutionData.amount} 万元\\n`;
+        csvContent += `综合收益率,${solutionData.clientRate.toFixed(2)}%\\n\\n`;
+        
+        // 产品明细表头
+        csvContent += '产品明细\\n';
+        csvContent += '产品名称,产品类型,配置比例,收益率,配置金额(万元),配置收益(万元)\\n';
+        
+        // 产品明细数据
+        solutionData.products.forEach(product => {
+            const amount = solutionData.amount * product.ratio / 100;
+            const profit = amount * product.rate / 100;
+            csvContent += `${product.name},${product.type},${product.ratio.toFixed(2)}%,${product.rate.toFixed(2)}%,${amount.toFixed(2)},${profit.toFixed(2)}\\n`;
+        });
+        
+        // 汇总信息
+        csvContent += '\\n汇总信息\\n';
+        csvContent += `使用产品数量,${solutionData.products.length} 个\\n`;
+        csvContent += `总配置金额,${solutionData.amount.toFixed(2)} 万元\\n`;
+        csvContent += `综合收益率,${solutionData.clientRate.toFixed(2)}%\\n`;
+        csvContent += `年化收益,${(solutionData.amount * solutionData.clientRate / 100).toFixed(2)} 万元\\n`;
+        
+        // 创建下载链接
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${schemeName}_${new Date().toLocaleDateString()}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        
+    } catch (error) {
+        console.error('导出失败：', error);
+        alert('导出失败，请重试');
     }
 }
 
