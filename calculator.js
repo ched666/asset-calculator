@@ -2568,7 +2568,6 @@ function exportSchemeAsExcel(solutionIndex) {
         
         // 基本信息
         csvContent += '方案信息\n';
-        csvContent += `生成时间,${new Date().toLocaleString()}\n`;
         csvContent += `资金金额,${solutionData.amount} 万元\n`;
         csvContent += `客户综合收益率,${solutionData.clientRate.toFixed(2)}%\n\n`;
         
@@ -2607,15 +2606,6 @@ function exportSchemeAsExcel(solutionIndex) {
                 }
             });
         }
-        
-        // 汇总信息
-        csvContent += '\n汇总信息\n';
-        const productCount = solutionData.allocations 
-            ? solutionData.allocations.filter(a => a.ratio > 0.01).length 
-            : solutionData.allocation.filter(r => r > 0.01).length;
-        csvContent += `使用产品数量,${productCount} 个\n`;
-        csvContent += `综合收益率,${solutionData.clientRate.toFixed(2)}%\n`;
-        csvContent += `年化收益,${(solutionData.amount * solutionData.clientRate / 100).toFixed(2)} 万元\n`;
         
         // 创建下载链接
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -2744,7 +2734,6 @@ function exportBankSchemeAsExcel(schemeName) {
         csvContent += '方案信息\\n';
         csvContent += `方案名称,${solutionData.name}\\n`;
         csvContent += `方案说明,${solutionData.description}\\n`;
-        csvContent += `生成时间,${new Date().toLocaleString()}\\n`;
         csvContent += `资金金额,${solutionData.amount} 万元\\n`;
         csvContent += `综合收益率,${solutionData.clientRate.toFixed(2)}%\\n\\n`;
         
@@ -2758,13 +2747,6 @@ function exportBankSchemeAsExcel(schemeName) {
             const profit = amount * product.rate / 100;
             csvContent += `${product.name},${product.type},${product.ratio.toFixed(2)}%,${product.rate.toFixed(2)}%,${amount.toFixed(2)},${profit.toFixed(2)}\\n`;
         });
-        
-        // 汇总信息
-        csvContent += '\\n汇总信息\\n';
-        csvContent += `使用产品数量,${solutionData.products.length} 个\\n`;
-        csvContent += `总配置金额,${solutionData.amount.toFixed(2)} 万元\\n`;
-        csvContent += `综合收益率,${solutionData.clientRate.toFixed(2)}%\\n`;
-        csvContent += `年化收益,${(solutionData.amount * solutionData.clientRate / 100).toFixed(2)} 万元\\n`;
         
         // 创建下载链接
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
